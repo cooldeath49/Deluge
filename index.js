@@ -17,6 +17,7 @@ const storage = require('./storage.js');
 const allfacs = storage.allfacs;
 const allhexes = storage.allhexes;
 const Facility = storage.Facility;
+const config = require("./config.json");
 
 
 const client = new Client({
@@ -172,4 +173,4 @@ client.on("messageCreate", (msg) => {
   }
 });
 
-client.login(process.env.TOKEN);
+client.login(config.TOKEN);

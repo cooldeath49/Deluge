@@ -4,7 +4,8 @@ const {
   CommandInteraction,
 } = require("discord.js");
 
-const rest = new REST().setToken(process.env['TOKEN']);
+const config = require("./config.json");
+const rest = new REST().setToken(config.TOKEN);
 const fs = require("node:fs");
 const path = require("node:path");
 const foldersPath = path.join(__dirname, "commands"); //Creates a path to the commands folder
@@ -31,7 +32,7 @@ for (const folder of cmdFolders) { //iterate through all folder
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
-      Routes.applicationGuildCommands(process.env['APPID'], process.env['GUILDID']),
+      Routes.applicationGuildCommands(config.APPID, config.GUILDID),
       { body: commands },
     );
 
