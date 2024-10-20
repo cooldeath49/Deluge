@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder } = require('discord.js');
 const storage = require('../../storage.js');
 const allfacs = storage.allfacs;
 const allhexes = storage.allhexes;
@@ -45,7 +45,25 @@ module.exports = {
       let letternumber = keypad.substring(1, gridindex); //gets letter number
       if (allhexes.includes(hex)) {
         let fac = addFacility(hex, letter, letternumber, grid, reg);
-        msg.reply("Added facility in " + hex + "-" + keypad + " ID=" + fac.id + ", use >editfac to edit details");
+        let embed = {
+          title: reg + '-' + hex + ' Facility',
+          fields: [{
+            name: 'Location',
+            value: hex + '-' + keypad,
+            inline: true,
+            },
+            {
+              name: 'Regiment',
+              value: reg,
+            },
+            {
+              name: 'ID',
+              value: fac.id,
+            },
+
+          ],
+        }
+        interaction.editReply({content: "Added facility at: ", embeds: [embed]});
       } else {
         interaction.editReply("Could not find target hex \"" + hex + "\"");
       }
