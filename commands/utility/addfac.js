@@ -44,23 +44,8 @@ module.exports = {
       let letter = keypad.substring(0, 1).toUpperCase(); //gets letter
       let letternumber = keypad.substring(1, gridindex); //gets letter number
       if (allhexes.includes(hex)) {
-        let yes = new ButtonBuilder()
-        .setCustomId('add pw')
-        .setLabel("Yes")
-        .setStyle("Success");
-
-        let no = new ButtonBuilder()
-        .setCustomId("no pw")
-        .setLabel("No")
-        .setStyle("Danger");
-
-        let row = new ActionRowBuilder()
-        .addComponents(yes, no);
-        
-        console.log(hex + " " + letter + letternumber + "k" + grid);
         let fac = addFacility(hex, letter, letternumber, grid, reg);
-
-  
+        msg.reply("Added facility in " + hex + "-" + keypad + " ID=" + fac.id + ", use >editfac to edit details");
       } else {
         interaction.editReply("Could not find target hex \"" + hex + "\"");
       }

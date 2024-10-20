@@ -116,13 +116,15 @@ function textParser(msg, text) { //Parse through text for commands
       let grid = keypad.substring(gridindex + 1);
       let letter = keypad.substring(0, 1).toUpperCase();
       let letternumber = keypad.substring(1, gridindex);
-      if (allhexes.includes(hex)) {
-        console.log(hex + " " + letter + letternumber + "k" + grid);
-        let fac = addFacility(hex, letter, letternumber, grid);
-        msg.reply("Added facility in " + hex + "-" + keypad + " ID=" + fac.id + ", use >editfac to edit details");
-      } else {
-        msg.reply("Could not find target hex \"" + hex + "\"");
-      }
+
+      console.log(hex + " " + letter + letternumber + "k" + grid);
+      let fac = addFacility(hex, letter, letternumber, grid);
+      // if (allhexes.includes(hex)) {
+        
+      //   msg.reply("Added facility in " + hex + "-" + keypad + " ID=" + fac.id + ", use >editfac to edit details");
+      // } else {
+      //   msg.reply("Could not find target hex \"" + hex + "\"");
+      // }
       
     }
     
