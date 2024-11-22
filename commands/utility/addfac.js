@@ -4,21 +4,35 @@ ActionRow
 
  } = require('discord.js');
 const storage = require('../../storage.js');
+const order = [
+]
 const allfacs = storage.allfacs;
 const hexes1 = storage.hexes1;
 const hexes2 = storage.hexes2;
 const Facility = storage.Facility;
+let chosen_hex;
+let chosen_town;
+let keypad_letter;
+let keypad_number;
 const data = new SlashCommandBuilder()
 .setName("addfac")
 .setDescription("Register a facility with the bot")
-.addStringOption(option =>
-  option.setName("coordinates")
-  .setDescription("Ctrl+click on the map and paste coordinates of the facility")
-  .setRequired(true))
-.addStringOption(option =>
-  option.setName("regiment")
-  .setDescription("regiment tag")
-  .setRequired(true));
+
+
+let other_page = new ButtonBuilder()
+.setCustomId("switch page 1")
+.setLabel("Switch Page")
+.setStyle(ButtonStyle.Secondary);
+let cancel = new ButtonBuilder()
+.setCustomId("cancel")
+.setLabel("Cancel")
+.setStyle(ButtonStyle.Danger);
+let skip = new ButtonBuilder()
+.setCustomId("skip")
+.setLabel("Skip")
+.setStyle(ButtonStyle.Secondary);
+
+let select = new StringSelectMenuBuilder();
 
 
 function addFacility(hex, letter, letternumber, grid, reg) {
@@ -28,13 +42,135 @@ function addFacility(hex, letter, letternumber, grid, reg) {
   return facility;
 }
 
+async function handleInteraction(interaction) {
+
+  //Button related
+  if (interaction.customId == "cancel") {
+    await interaction.update({
+      content: 'Interaction cancelled!',
+      components: [],
+      ephemeral: true,
+      });
+  } else if (interaction.customId == "switch page 1") { //switch to the second page
+    select.spliceOptions(0,19)
+      .addOptions(hexes2.map((hex) => new StringSelectMenuOptionBuilder()
+            .setLabel(hex.label)
+            .setDescription(hex.description)
+            .setValue(hex.value)
+      )
+    );
+    other_page.setCustomId("switch page 2");
+    
+    row = new ActionRowBuilder().addComponents(select);
+    buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+    
+    await interaction.update({
+      content: 'Choose your facility hex (page 2/2):',
+      components: [row, buttonrow],
+      ephemeral: true,
+    });
+
+  } else if (interaction.customId == "switch page 2") { //Switch to page 1
+    select.spliceOptions(0,19)
+      .addOptions(hexes1.map((hex) => new StringSelectMenuOptionBuilder()
+            .setLabel(hex.label)
+            .setDescription(hex.description)
+            .setValue(hex.value)
+      )
+    );
+    other_page.setCustomId("switch page 1");
+    
+    row = new ActionRowBuilder().addComponents(select);
+    buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+    
+    await interaction.update({
+      content: 'Choose your facility hex (page 1/2):',
+      components: [row, buttonrow],
+      ephemeral: true,
+      });
+  } else if (interaction.customId == "cancel") {
+    await interaction.update({
+      content: 'Interaction cancelled!',
+      components: [],
+      ephemeral: true,
+      });
+
+  //Selection made for hex, string select
+  } else if (interaction.customId == "hex select") {
+    chosen_hex = interaction.values[0];
+    console.log(interaction.values);
+    select.spliceOptions(0,25)
+      .addOptions(storage.testhex[chosen_hex].map((town) => new StringSelectMenuOptionBuilder()
+            .setLabel(town)
+            .setDescription(town)
+            .setValue(town)
+      )
+    )
+    .setCustomId('town select')
+    .setPlaceholder('Select town of your facility:')
+    ;
+    
+    row = new ActionRowBuilder().addComponents(select);
+    buttonrow = new ActionRowBuilder().addComponents(cancel);
+    await interaction.update({
+      content: 'Select hex town:',
+      components: [row, buttonrow],
+      ephemeral: true,
+    });
+
+  //Selection made for town
+  } else if (interaction.customId == "town select") {
+    chosen_town = interaction.values[0];
+    select.spliceOptions(0,25)
+      .addOptions(storage.grid_letter.map((letter) => new StringSelectMenuOptionBuilder()
+            .setLabel(letter.toString())
+            .setDescription(letter.toString())
+            .setValue(letter.toString())
+      )
+    )
+    .setCustomId('grid letter select')
+    .setPlaceholder('Select the keypad grid-letter of your location:')
+    ;
+    
+    row = new ActionRowBuilder().addComponents(select);
+    buttonrow = new ActionRowBuilder().addComponents(cancel);
+    await interaction.update({
+      content: 'Select grid letter:',
+      components: [row, buttonrow],
+      ephemeral: true,
+    });
+
+    //Selection made for letter
+  } else if (interaction.customId == "grid letter select") {
+    chosen_town = interaction.values[0];
+    select.spliceOptions(0,25)
+      .addOptions(storage.grid_number.map((number) => new StringSelectMenuOptionBuilder()
+            .setLabel(number.toString())
+            .setDescription(number.toString())
+            .setValue(number.toString())
+      )
+    )
+    .setCustomId('grid number select')
+    .setPlaceholder('Select the keypad grid-number of your location:')
+    ;
+    
+    row = new ActionRowBuilder().addComponents(select);
+    buttonrow = new ActionRowBuilder().addComponents(cancel);
+    await interaction.update({
+      content: 'Select grid number:',
+      components: [row, buttonrow],
+      ephemeral: true,
+    });
+  }
+}
+
 
 module.exports = {
   data: data,
   async execute(interaction) {
-    let select = new StringSelectMenuBuilder()
+    select = new StringSelectMenuBuilder()
 			.setCustomId('hex select')
-			.setPlaceholder('Select hex location of your facility:')
+			.setPlaceholder('Select hex of your facility:')
       
       .addOptions(hexes1.map((hex) => new StringSelectMenuOptionBuilder()
           .setLabel(hex.label)
@@ -42,12 +178,8 @@ module.exports = {
           .setValue(hex.value)
         )
 			);
-    let other_page = new ButtonBuilder()
-      .setCustomId("switch page 1")
-      .setLabel("Switch Page")
-      .setStyle(ButtonStyle.Secondary);
     let row = new ActionRowBuilder().addComponents(select);
-    let buttonrow = new ActionRowBuilder().addComponents(other_page);
+    let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
 
 
     const response = await interaction.reply({
@@ -58,66 +190,112 @@ module.exports = {
 
     const buttoncollector = response.createMessageComponentCollector({ componentType: ComponentType.Button, time: 3_600_000 });
     const stringcollector = response.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 3_600_000 });
-
+    
+    //Collect responses from buttons
     buttoncollector.on('collect', async i2 => {
-      if (i2.customId == "switch page 1") { //switch to the second page
-        select.spliceOptions(0,19)
-          .addOptions(hexes2.map((hex) => new StringSelectMenuOptionBuilder()
-                .setLabel(hex.label)
-                .setDescription(hex.description)
-                .setValue(hex.value)
-          )
-        );
-        other_page.setCustomId("switch page 2");
-        
-        row = new ActionRowBuilder().addComponents(select);
-        buttonrow = new ActionRowBuilder().addComponents(other_page);
-        
-        await i2.update({
-          content: 'Choose your facility hex (page 2/2):',
-          components: [row, buttonrow],
-          ephemeral: true,
-        });
+      handleInteraction(i2);
 
-      } else if (i2.customId == "switch page 2") { //Switch to page 1
-        select.spliceOptions(0,19)
-          .addOptions(hexes1.map((hex) => new StringSelectMenuOptionBuilder()
-                .setLabel(hex.label)
-                .setDescription(hex.description)
-                .setValue(hex.value)
-          )
-        );
-        other_page.setCustomId("switch page 1");
+      // if (i2.customId == "cancel") {
+      //   await i2.update({
+      //     content: 'Interaction cancelled!',
+      //     components: [],
+      //     ephemeral: true,
+      //     });
+      // } else if (i2.customId == "switch page 1") { //switch to the second page
+      //   select.spliceOptions(0,19)
+      //     .addOptions(hexes2.map((hex) => new StringSelectMenuOptionBuilder()
+      //           .setLabel(hex.label)
+      //           .setDescription(hex.description)
+      //           .setValue(hex.value)
+      //     )
+      //   );
+      //   other_page.setCustomId("switch page 2");
         
-        row = new ActionRowBuilder().addComponents(select);
-        buttonrow = new ActionRowBuilder().addComponents(other_page);
+      //   row = new ActionRowBuilder().addComponents(select);
+      //   buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
         
-        await i2.update({
-          content: 'Choose your facility hex (page 1/2):',
-          components: [row, buttonrow],
-          ephemeral: true,
-          });
-      } 
+      //   await i2.update({
+      //     content: 'Choose your facility hex (page 2/2):',
+      //     components: [row, buttonrow],
+      //     ephemeral: true,
+      //   });
+
+      // } else if (i2.customId == "switch page 2") { //Switch to page 1
+      //   select.spliceOptions(0,19)
+      //     .addOptions(hexes1.map((hex) => new StringSelectMenuOptionBuilder()
+      //           .setLabel(hex.label)
+      //           .setDescription(hex.description)
+      //           .setValue(hex.value)
+      //     )
+      //   );
+      //   other_page.setCustomId("switch page 1");
+        
+      //   row = new ActionRowBuilder().addComponents(select);
+      //   buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+        
+      //   await i2.update({
+      //     content: 'Choose your facility hex (page 1/2):',
+      //     components: [row, buttonrow],
+      //     ephemeral: true,
+      //     });
+      // } 
     });
 
+    //String selection
     stringcollector.on('collect', async i2 => {
-      if (i2.customid == "hex select") {
-        select.spliceOptions(0,19)
-          .addOptions(storage.testhex.map((hex) => new StringSelectMenuOptionBuilder()
-                .setLabel(hex.label)
-                .setDescription(hex.description)
-                .setValue(hex.value)
-          )
-        );
+      console.log(i2.customId);
+      handleInteraction(i2);
+      //Cancel
+      // if (i2.customId == "cancel") {
+      //   await i2.update({
+      //     content: 'Interaction cancelled!',
+      //     components: [],
+      //     ephemeral: true,
+      //     });
+      // //Selection made for hex
+      // } else if (i2.customId == "hex select") {
+      //   chosen_hex = i2.values[0];
+      //   console.log(i2.values);
+      //   select.spliceOptions(0,25)
+      //     .addOptions(storage.testhex[chosen_hex].map((town) => new StringSelectMenuOptionBuilder()
+      //           .setLabel(town)
+      //           .setDescription(town)
+      //           .setValue(town)
+      //     )
+      //   )
+      //   .setCustomId('town select')
+      //   .setPlaceholder('Select town of your facility:')
+      //   ;
         
-        row = new ActionRowBuilder().addComponents(select);
+      //   row = new ActionRowBuilder().addComponents(select);
+      //   buttonrow = new ActionRowBuilder().addComponents(cancel);
+      //   await i2.update({
+      //     content: 'Select hex town:',
+      //     components: [row, buttonrow],
+      //     ephemeral: true,
+      //   });
+      // //Selection made for town
+      // } else if (i2.customId == "town select") {
+      //   chosen_town = i2.values[0];
+      //   select.spliceOptions(0,25)
+      //     .addOptions(storage.grid_letter.map((letter) => new StringSelectMenuOptionBuilder()
+      //           .setLabel(letter.toString())
+      //           .setDescription(letter.toString())
+      //           .setValue(letter.toString())
+      //     )
+      //   )
+      //   .setCustomId('grid letter select')
+      //   .setPlaceholder('Select the keypad grid-letter of your location:')
+      //   ;
         
-        await i2.update({
-          content: 'Select hex town:',
-          components: [row],
-          ephemeral: true,
-        });
-      }
+      //   row = new ActionRowBuilder().addComponents(select);
+      //   buttonrow = new ActionRowBuilder().addComponents(cancel);
+      //   await i2.update({
+      //     content: 'Select grid letter:',
+      //     components: [row, buttonrow],
+      //     ephemeral: true,
+      //   });
+      // }
 
     });
 

@@ -1,26 +1,26 @@
 const allfacs = [];
-const testhex = [
-  {
-    details: {
-      label: "The Linn of Mercy",
-      description: "The Linn of Mercy",
-      value: "The Linn of Mercy",
-    },
-    towns: [
-      "The Long Whine",
-      "Rotdust",
-      "Lathair",
-      "Outwich Ranch",
-      "Fort Duncan",
-      "The Prairie Bazaar",
-      "The Last Grove",
-      "The Crimson Gardens",
-      "The First Coin",
-      "Hardline",
-      "Ulster Falls"
-    ],
-  }
+const testhex = {
+  "The Linn of Mercy": [
+    "The Long Whine",
+    "Rotdust",
+    "Lathair",
+    "Outwich Ranch",
+    "Fort Duncan",
+    "The Prairie Bazaar",
+    "The Last Grove",
+    "The Crimson Gardens",
+    "The First Coin",
+    "Hardline",
+    "Ulster Falls"
+  ],
+}
+const grid_letter = [
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
 ]
+const grid_number = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+]
+
 const hexes1 = [
   {
     label: "Speaking Woods",
@@ -245,6 +245,8 @@ module.exports = {
   hexes1: hexes1,
   hexes2: hexes2,
   testhex: testhex,
+  grid_number: grid_number,
+  grid_letter: grid_letter,
   Facility: Facility,
   coord: coord
 }
