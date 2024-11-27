@@ -1,5 +1,5 @@
 const allfacs = [];
-const testhex = {
+const hexes1 = {
   "The Linn of Mercy": [
     "The Long Whine",
     "Rotdust",
@@ -13,6 +13,41 @@ const testhex = {
     "Hardline",
     "Ulster Falls"
   ],
+  "The Deadlands": [
+    "Callahan's Gate",
+    "Iron's End",
+    "The Spine",
+    "Liberation Point",
+    "Abandoned Ward",
+    "Callahan's Boot",
+    "The Salt March",
+    "The Salt Farms",
+    "The Pits",
+    "Brine Glen",
+    "Sun's Hollow"
+  ],
+  "Marban Hollow": [
+    "Sanctum",
+    "Lockheed",
+    "The Spitrocks",
+    "Maiden's Veil",
+    "Oster Wall",
+    "Mox",
+    "Checkpoint Bua"
+  ],
+  "Farranac Coast": [
+    "The Jade Cove",
+    "Terra",
+    "The Bone Haft",
+    "Mara",
+    "The Pleading Wharf",
+    "Transient Valley",
+    "Scarp of Ambrose",
+    "Huskhollow",
+    "Macha's Keening",
+    "Victa",
+    "Scythe",
+  ]
 }
 const grid_letter = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
@@ -21,7 +56,7 @@ const grid_number = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 ]
 
-const hexes1 = [
+const hexes1test = [
   {
     label: "Speaking Woods",
     description: "Speaking Woods",
@@ -68,21 +103,6 @@ const hexes1 = [
     value: "Godcrofts",
   },
   {
-    label: "Farranac Coast",
-    description: "Farranac Coast",
-    value: "Farranac Coast",
-  },
-  {
-    label: "The Linn of Mercy",
-    description: "The Linn of Mercy",
-    value: "The Linn of Mercy",
-  },
-  {
-    label: "Marban Hollow",
-    description: "Marban Hollow",
-    value: "Marban Hollow",
-  },
-  {
     label: "Stlican Shelf",
     description: "Stlican Shelf",
     value: "Stlican Shelf",
@@ -96,11 +116,6 @@ const hexes1 = [
     label: "Kings Cage",
     description: "Kings Cage",
     value: "Kings Cage",
-  },
-  {
-    label: "Deadlands",
-    description: "Deadlands",
-    value: "Deadlands",
   },
   {
     label: "The Clahstra",

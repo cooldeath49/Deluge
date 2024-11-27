@@ -14,6 +14,8 @@ let chosen_hex;
 let chosen_town;
 let keypad_letter;
 let keypad_number;
+let relative;
+let field;
 const data = new SlashCommandBuilder()
   .setName("addfac")
   .setDescription("Register a facility with the bot")
@@ -203,7 +205,9 @@ async function handleInteraction(interaction) {
       ephemeral: true,
     });
 
+    //Selection made for number
   } else if (interaction.customId == "grid number select") {
+    keypad_number = interaction.values[0];
     select.spliceOptions(0, 25)
       .addOptions(new StringSelectMenuOptionBuilder()
         .setLabel("Scrap Field")
@@ -235,80 +239,140 @@ async function handleInteraction(interaction) {
       ephemeral: true,
     });
 
+    //Final step in adding a facility
+  } else if (interaction.customId == "field select" || interaction.customId == "relative select") {
 
-  } else if (interaction.customId == "field select")
-    keypad_number = interaction.values[0];
-  let regiment, contact, nickname;
-  const modal = new ModalBuilder()
-    .setCustomId("regiment modal")
-    .setTitle("Regiment")
+    field = interaction.values[0];
+    if (field == "N/A") {
+      select.spliceOptions(0, 25)
+        .addOptions(new StringSelectMenuOptionBuilder()
+          .setLabel("North of " + chosen_town)
+          .setDescription("North of " + chosen_town)
+          .setValue("North"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Northeast of " + chosen_town)
+            .setDescription("Northeast of " + chosen_town)
+            .setValue("Northeast"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("East of " + chosen_town)
+            .setDescription("East of " + chosen_town)
+            .setValue("East"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Southeast of " + chosen_town)
+            .setDescription("Southeast of " + chosen_town)
+            .setValue("Southeast"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("South of " + chosen_town)
+            .setDescription("South of " + chosen_town)
+            .setValue("South"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Southwest of " + chosen_town)
+            .setDescription("Southwest of " + chosen_town)
+            .setValue("Southwest"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("West of " + chosen_town)
+            .setDescription("West of " + chosen_town)
+            .setValue("West"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Northwest of " + chosen_town)
+            .setDescription("Northwest of " + chosen_town)
+            .setValue("Northwest"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Right next to " + chosen_town)
+            .setDescription("Within ~40m of " + chosen_town + " TH/Relic")
+            .setValue("Zero"),
+        )
+        .setCustomId("relative select")
+        .setPlaceholder("Where is the relative location of your facility?")
+      let row = new ActionRowBuilder().addComponents(select)
+      await interaction.update({
+        content: 'Select relative location:',
+        components: [row],
+        ephemeral: true,
+      });
+    } else {
+      let regiment, contact, nickname;
+      const modal = new ModalBuilder()
+        .setCustomId("regiment modal")
+        .setTitle("Regiment")
+  
+      let regimentinput = new TextInputBuilder()
+        .setCustomId("regiment")
+        .setLabel("What regiment owns this? N/A if none")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMaxLength(30)
+  
+      let contactinput = new TextInputBuilder()
+        .setCustomId("contact")
+        .setLabel("Discord username of primary point of contact")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMaxLength(60)
+  
+      let nicknameinput = new TextInputBuilder()
+        .setCustomId("nickname")
+        .setLabel("Nickname for your facility?")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMaxLength(100)
+  
+  
+      row = new ActionRowBuilder().addComponents(regimentinput)
+      let secondrow = new ActionRowBuilder().addComponents(contactinput)
+      let thirdrow = new ActionRowBuilder().addComponents(nicknameinput)
+  
+      modal.addComponents(row, secondrow, thirdrow);
+  
+      await interaction.showModal(modal);
+  
+  
+      let submitted = await interaction.awaitModalSubmit({
+        time: 60000,
+        filter: i => i.user.id === interaction.user.id,
+      }).catch(error => {
+        // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
+        console.error(error)
+        return null
+      })
+  
+      regiment = submitted.fields.getTextInputValue("regiment");
+      contact = submitted.fields.getTextInputValue("contact");
+      nickname = submitted.fields.getTextInputValue("nickname");
+      
+      let embed = new EmbedBuilder()
+        .addFields(
+          { name: "Lead Contact", value: contact },
+          { name: "Hex", value: chosen_hex, inline: true },
+          { name: "Town", value: chosen_town, inline: true },
+          { name: "Grid", value: keypad_letter + keypad_number.toString(), inline: true },
+        )
+      if (field) {
+        embed.setTitle(chosen_town + " " + field + ": \"" + nickname + "\"")
+      } else {
+        if (relative == "Zero") {
+          embed.setTitle(chosen_town + ": \"" + nickname + "\"")
+        } else {
+          embed.setTitle(relative + " of " + chosen_town + ": \"" + nickname + "\"")
+        }
+       
+      }
+      let embed2 = new EmbedBuilder()
+        .setTitle("Successfully added a facility!")
+  
+      await interaction.editReply({ content: "", embeds: [embed2, embed], components: [] })
+  
+      // const modalcollector = response.createMessageComponentCollector({ componentType: ComponentType.TextInput, time: 3_600_000 });
+      // modalcollector.on('collect', async i2 => {
+      //   console.log(i2);
+      //   handleInteraction(i2);
+      // });
+    }
+    // keypad_number = interaction.values[0];
+    
 
-  let regimentinput = new TextInputBuilder()
-    .setCustomId("regiment")
-    .setLabel("What regiment owns this? N/A if none")
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true)
-    .setMaxLength(30)
-
-  let contactinput = new TextInputBuilder()
-    .setCustomId("contact")
-    .setLabel("Discord username of primary point of contact")
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true)
-    .setMaxLength(60)
-
-  let nicknameinput = new TextInputBuilder()
-    .setCustomId("nickname")
-    .setLabel("Nickname for your facility?")
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true)
-    .setMaxLength(100)
-
-
-  row = new ActionRowBuilder().addComponents(regimentinput)
-  let secondrow = new ActionRowBuilder().addComponents(contactinput)
-  let thirdrow = new ActionRowBuilder().addComponents(nicknameinput)
-
-  modal.addComponents(row, secondrow, thirdrow);
-
-  await interaction.showModal(modal);
-
-
-  let submitted = await interaction.awaitModalSubmit({
-    time: 60000,
-    filter: i => i.user.id === interaction.user.id,
-  }).catch(error => {
-    // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
-    console.error(error)
-    return null
-  })
-
-  regiment = submitted.fields.getTextInputValue("regiment");
-  contact = submitted.fields.getTextInputValue("contact");
-  nickname = submitted.fields.getTextInputValue("nickname");
-
-  let embed = new EmbedBuilder()
-    .setTitle(nickname)
-    .addFields(
-      { name: "Lead Contact", value: contact },
-      { name: "Hex", value: chosen_hex, inline: true },
-      { name: "Town", value: chosen_town, inline: true },
-      { name: "Grid", value: keypad_letter + keypad_number.toString(), inline: true },
-    )
-  let embed2 = new EmbedBuilder()
-    .setTitle("Successfully added a facility!")
-
-  await interaction.editReply({ content: "", embeds: [embed2, embed], components: [] })
-
-  // const modalcollector = response.createMessageComponentCollector({ componentType: ComponentType.TextInput, time: 3_600_000 });
-  // modalcollector.on('collect', async i2 => {
-  //   console.log(i2);
-  //   handleInteraction(i2);
-  // });
-
+  }
 }
-
-
 
 module.exports = {
   data: data,
