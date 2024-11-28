@@ -8,6 +8,7 @@ const order = [
 ]
 const allfacs = storage.allfacs;
 const hexes1 = storage.hexes1;
+const hexes1array = storage.hexes1array;
 const hexes2 = storage.hexes2;
 const Facility = storage.Facility;
 let chosen_hex;
@@ -54,17 +55,11 @@ async function handleInteraction(interaction) {
       ephemeral: true,
     });
   } else if (interaction.customId == "manual") {
-
     select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
       .setPlaceholder('Select hex of your facility:')
-
-      .addOptions(hexes1.map((hex) => new StringSelectMenuOptionBuilder()
-        .setLabel(hex.label)
-        .setDescription(hex.description)
-        .setValue(hex.value)
-      )
-      );
+      
+      .addOptions(hexes1);
     let row = new ActionRowBuilder().addComponents(select);
     let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
 
@@ -143,12 +138,11 @@ async function handleInteraction(interaction) {
     chosen_hex = interaction.values[0];
     console.log(interaction.values);
     select.spliceOptions(0, 25)
-      .addOptions(storage.testhex[chosen_hex].map((town) => new StringSelectMenuOptionBuilder()
-        .setLabel(town)
-        .setDescription(town)
-        .setValue(town)
-      )
-      )
+      .addOptions(hexes1array.get(chosen_hex).map((town) => new StringSelectMenuOptionBuilder()
+      .setLabel(town)
+      .setDescription(town)
+      .setValue(town)
+    ))
       .setCustomId('town select')
       .setPlaceholder('Select town of your facility:')
       ;

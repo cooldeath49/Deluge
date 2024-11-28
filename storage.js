@@ -1,6 +1,14 @@
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder,
+  StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType,
+  ActionRow
+
+} = require('discord.js');
+
 const allfacs = [];
-const hexes1 = {
-  "The Linn of Mercy": [
+var hexes1 = [];
+// var hexes2 = [];
+var hexes1array = new Map()
+  .set("The Linn of Mercy", [
     "The Long Whine",
     "Rotdust",
     "Lathair",
@@ -12,8 +20,8 @@ const hexes1 = {
     "The First Coin",
     "Hardline",
     "Ulster Falls"
-  ],
-  "The Deadlands": [
+  ],)
+  .set("The Deadlands", [
     "Callahan's Gate",
     "Iron's End",
     "The Spine",
@@ -25,8 +33,8 @@ const hexes1 = {
     "The Pits",
     "Brine Glen",
     "Sun's Hollow"
-  ],
-  "Marban Hollow": [
+  ],)
+  .set("Marban Hollow", [
     "Sanctum",
     "Lockheed",
     "The Spitrocks",
@@ -34,8 +42,8 @@ const hexes1 = {
     "Oster Wall",
     "Mox",
     "Checkpoint Bua"
-  ],
-  "Farranac Coast": [
+  ],)
+  .set("Farranac Coast", [
     "The Jade Cove",
     "Terra",
     "The Bone Haft",
@@ -47,8 +55,15 @@ const hexes1 = {
     "Macha's Keening",
     "Victa",
     "Scythe",
-  ]
-}
+  ])
+
+hexes1array.forEach((value, key, map) => hexes1.push(new StringSelectMenuOptionBuilder()
+  .setLabel(key)
+  .setDescription(key)
+  .setValue(key)
+  )
+);
+
 const grid_letter = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
 ]
@@ -56,7 +71,7 @@ const grid_number = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 ]
 
-const hexes1test = [
+const testhex = [
   {
     label: "Speaking Woods",
     description: "Speaking Woods",
@@ -258,6 +273,7 @@ function coord(fac) {
 module.exports = {
   allfacs: allfacs,
   hexes1: hexes1,
+  hexes1array: hexes1array,
   hexes2: hexes2,
   testhex: testhex,
   grid_number: grid_number,
