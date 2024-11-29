@@ -11,6 +11,7 @@ const {
   REST,
   Routes,
 } = require("discord.js");
+// import Foxhole from 'foxhole-client';
 const fs = require("node:fs");
 const path = require("node:path");
 const storage = require('./storage.js');

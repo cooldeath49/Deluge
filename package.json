@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/node": "^18.0.6",
     "discord.js": "^14.16.1",
+    "foxhole-client": "^2.0.0",
     "storage.js": "^1.1.1"
   }
 }

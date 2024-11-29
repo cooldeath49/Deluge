@@ -37,14 +37,6 @@ let skip = new ButtonBuilder()
 
 let select = new StringSelectMenuBuilder();
 
-
-function addFacility(hex, letter, letternumber, grid, reg) {
-  let facility = new Facility(hex, letter, letternumber, grid, allfacs.length, reg);
-  allfacs.push(facility);
-  console.log("Added " + reg + " facility at " + letter + letternumber + "k" + grid + ", ID=" + facility.id);
-  return facility;
-}
-
 async function handleInteraction(interaction) {
 
   //Button related
@@ -52,23 +44,20 @@ async function handleInteraction(interaction) {
     await interaction.update({
       content: 'Interaction cancelled!',
       components: [],
-      ephemeral: true,
+      embeds: [],
     });
   } else if (interaction.customId == "manual") {
     select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
       .setPlaceholder('Select hex of your facility:')
-      
       .addOptions(hexes1);
     let row = new ActionRowBuilder().addComponents(select);
     let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
-
 
     const response = await interaction.update({
       content: 'Choose your facility hex (page 1/2):',
       components: [row, buttonrow],
       embeds: [],
-      ephemeral: true,
     });
     //Paste coordinates
   } else if (interaction.customId == "paste") {
@@ -105,7 +94,6 @@ async function handleInteraction(interaction) {
     await interaction.update({
       content: 'Choose your facility hex (page 2/2):',
       components: [row, buttonrow],
-      ephemeral: true,
     });
 
   } else if (interaction.customId == "switch page 2") { //Switch to page 1
@@ -124,13 +112,11 @@ async function handleInteraction(interaction) {
     await interaction.update({
       content: 'Choose your facility hex (page 1/2):',
       components: [row, buttonrow],
-      ephemeral: true,
     });
   } else if (interaction.customId == "cancel") {
     await interaction.update({
       content: 'Interaction cancelled!',
       components: [],
-      ephemeral: true,
     });
 
     //Selection made for hex, string select
@@ -148,11 +134,10 @@ async function handleInteraction(interaction) {
       ;
 
     row = new ActionRowBuilder().addComponents(select);
-    buttonrow = new ActionRowBuilder().addComponents(cancel, skip);
+    buttonrow = new ActionRowBuilder().addComponents(cancel);
     await interaction.update({
       content: 'Select hex town:',
       components: [row, buttonrow],
-      ephemeral: true,
     });
 
     //Selection made for town
@@ -174,7 +159,6 @@ async function handleInteraction(interaction) {
     await interaction.update({
       content: 'Select grid letter:',
       components: [row, buttonrow],
-      ephemeral: true,
     });
 
     //Selection made for letter
@@ -196,7 +180,6 @@ async function handleInteraction(interaction) {
     await interaction.update({
       content: 'Select grid number:',
       components: [row, buttonrow],
-      ephemeral: true,
     });
 
     //Selection made for number
@@ -227,17 +210,15 @@ async function handleInteraction(interaction) {
       .setCustomId("field select")
       .setPlaceholder("Is your facility built on a resource field?")
     let row = new ActionRowBuilder().addComponents(select)
+    let buttonrow = new ActionRowBuilder().addComponents(cancel);
     await interaction.update({
       content: 'Select field type:',
-      components: [row],
-      ephemeral: true,
+      components: [row, buttonrow],
     });
 
     //Final step in adding a facility
   } else if (interaction.customId == "field select" || interaction.customId == "relative select") {
-
-    field = interaction.values[0];
-    if (field == "N/A") {
+    if (interaction.values[0] == "N/A") {
       select.spliceOptions(0, 25)
         .addOptions(new StringSelectMenuOptionBuilder()
           .setLabel("North of " + chosen_town)
@@ -279,12 +260,18 @@ async function handleInteraction(interaction) {
         .setCustomId("relative select")
         .setPlaceholder("Where is the relative location of your facility?")
       let row = new ActionRowBuilder().addComponents(select)
+      let buttonrow = new ActionRowBuilder().addComponents(cancel);
       await interaction.update({
         content: 'Select relative location:',
-        components: [row],
-        ephemeral: true,
+        components: [row, buttonrow],
       });
+
     } else {
+      if (interaction.customId == "field select") {
+        field = interaction.values[0];
+      } else {
+        relative = interaction.values[0];
+      }
       let regiment, contact, nickname;
       const modal = new ModalBuilder()
         .setCustomId("regiment modal")
@@ -334,27 +321,12 @@ async function handleInteraction(interaction) {
       contact = submitted.fields.getTextInputValue("contact");
       nickname = submitted.fields.getTextInputValue("nickname");
       
-      let embed = new EmbedBuilder()
-        .addFields(
-          { name: "Lead Contact", value: contact },
-          { name: "Hex", value: chosen_hex, inline: true },
-          { name: "Town", value: chosen_town, inline: true },
-          { name: "Grid", value: keypad_letter + keypad_number.toString(), inline: true },
-        )
-      if (field) {
-        embed.setTitle(chosen_town + " " + field + ": \"" + nickname + "\"")
-      } else {
-        if (relative == "Zero") {
-          embed.setTitle(chosen_town + ": \"" + nickname + "\"")
-        } else {
-          embed.setTitle(relative + " of " + chosen_town + ": \"" + nickname + "\"")
-        }
-       
-      }
       let embed2 = new EmbedBuilder()
-        .setTitle("Successfully added a facility!")
-  
-      await interaction.editReply({ content: "", embeds: [embed2, embed], components: [] })
+      .setTitle("Successfully added a facility!")
+      
+      let fac = storage.add(chosen_hex, chosen_town, keypad_letter, keypad_number, regiment, contact, nickname, field, relative);
+
+      await interaction.editReply({ content: "", embeds: [embed2, fac.toEmbed()], components: [] })
   
       // const modalcollector = response.createMessageComponentCollector({ componentType: ComponentType.TextInput, time: 3_600_000 });
       // modalcollector.on('collect', async i2 => {
@@ -382,18 +354,19 @@ module.exports = {
       .setStyle(ButtonStyle.Primary)
 
     let row = new ActionRowBuilder().addComponents(manualbutton, pastebutton);
+    let buttonrow = new ActionRowBuilder().addComponents(cancel);
 
     let embed = new EmbedBuilder().setTitle("How would you like to choose your facility location?")
 
     let response = await interaction.reply({
       content: "",
-      components: [row],
+      components: [row, buttonrow],
       embeds: [embed],
-      ephemeral: true,
     })
 
-    const buttoncollector = response.createMessageComponentCollector({ componentType: ComponentType.Button, time: 3_600_000 });
-    const stringcollector = response.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 3_600_000 });
+    const buttoncollector = response.createMessageComponentCollector({ componentType: ComponentType.Button, time: 3_600_000, 
+      filter: i => i.user.id === interaction.user.id, });
+    const stringcollector = response.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 3_600_000, filter: i => i.user.id === interaction.user.id, });
 
     //Collect responses from buttons
     buttoncollector.on('collect', async i2 => {

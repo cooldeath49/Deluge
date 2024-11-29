@@ -3,8 +3,24 @@ const { Events } = require('discord.js');
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
-        console.log(interaction.customId);
+        // console.log(interaction.customId);
 		if (interaction.isModalSubmit()) interaction.deferUpdate();
+		if (interaction.isAutocomplete()) {
+			interaction.deferUpdate();
+			let command = interaction.client.commands.get(interaction.commandName);
+
+			if (!command) {
+				console.error(`No command matching ${interaction.commandName} was found.`);
+				return;
+			}
+			
+			try {
+				await command.autocomplete(interaction);
+			} catch (error) {
+				console.error(error);
+			}
+
+		}
 		if (!interaction.isChatInputCommand()) return;
 
 		const command = interaction.client.commands.get(interaction.commandName);

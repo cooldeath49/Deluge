@@ -4,11 +4,47 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Modal
 
 } = require('discord.js');
 
-const allfacs = [];
+const facs_name_map = [
+  "Linn of Mercy",
+  "Deadlands",
+  "Marban Hollow",
+  "Farranac Coast"
+]
+
+function get_name_index(str) {
+  return facs_name_map.indexOf(str);
+}
+
+var allfacs = [[], [], [], []];
+
+let global_id = 0;
+let global_count = 0;
+
+/*
+0: The Linn of Mercy
+1: The Deadlands
+2: Marban Hollow
+3: Farranac Coast
+*/
+
+//Given a set of parameters, adds a facility to the list and returns its object
+function add(...args) { 
+  let facility = new Facility(...args, global_id++);
+  allfacs[get_name_index(facility.hex)].push(facility);
+  console.log("Added facility");
+  global_count++;
+  console.log(global_count);
+  return facility;
+}
+
+function get_count() {
+  return global_count;
+}
+
 var hexes1 = [];
 // var hexes2 = [];
 var hexes1array = new Map()
-  .set("The Linn of Mercy", [
+  .set("Linn of Mercy", [
     "The Long Whine",
     "Rotdust",
     "Lathair",
@@ -21,7 +57,7 @@ var hexes1array = new Map()
     "Hardline",
     "Ulster Falls"
   ],)
-  .set("The Deadlands", [
+  .set("Deadlands", [
     "Callahan's Gate",
     "Iron's End",
     "The Spine",
@@ -61,7 +97,7 @@ hexes1array.forEach((value, key, map) => hexes1.push(new StringSelectMenuOptionB
   .setLabel(key)
   .setDescription(key)
   .setValue(key)
-  )
+)
 );
 
 const grid_letter = [
@@ -148,7 +184,7 @@ const testhex = [
     value: "Westgate",
   },
 ]
-const hexes2 = [ {
+const hexes2 = [{
   label: "Loch Mor",
   description: "Loch Mor",
   value: "Loch Mor",
@@ -239,31 +275,65 @@ const hexes2 = [ {
   value: "Kalokai",
 },
 ]
-    
+
 
 
 class Facility {
   hex;
+  town;
   letter;
-  letternumber;
-  grid;
-  id;
-  lastupdated; 
-
+  number;
   regiment;
   contact;
-  constructor(hex, letter, letternumber, grid, id, reg) {
+  nickname;
+  field;
+  relative;
+  id;
+
+  constructor(hex, town, letter, num, reg, contact, nickname, field, relative, id) {
     this.hex = hex;
+    this.town = town;
     this.letter = letter;
-    this.letternumber = letternumber;
-    this.grid = grid;
-    this.id = id;
+    this.number = num;
     this.regiment = reg;
-    this.lastupdated = Date.now();
+    this.contact = contact;
+    this.nickname = nickname;
+    this.field = field;
+    this.relative = relative;
+    this.id = id;
   }
 
   update() {
     lastupdated = Date.now();
+  }
+
+  toString() {
+    if (this.field) {
+      return this.town + " " + this.field + " (" + this.letter + this.number.toString() + "): \"" + this.nickname + "\" run by " + this.regiment + " (" + this.contact + ")";
+    } else {
+      return this.relative + " of " + this.town + " (" + this.letter + this.number.toString() + "): \"" + this.nickname + "\" run by " + this.regiment + " (" + this.contact + ")";
+    }
+  }
+
+  toEmbed() {
+    let embed = new EmbedBuilder()
+      .addFields(
+        { name: "Lead Contact", value: this.contact },
+        { name: "Hex", value: this.hex, inline: true },
+        { name: "Town", value: this.town, inline: true },
+        { name: "Grid", value: this.letter + this.number.toString(), inline: true },
+      )
+    if (this.field) {
+      embed.setTitle(this.town + " " + this.field + ": \"" + this.nickname + "\"")
+    } else {
+      if (this.relative == "Zero") {
+        embed.setTitle(this.town + ": \"" + this.nickname + "\"")
+      } else {
+        embed.setTitle(this.relative + " of " + this.town + ": \"" + this.nickname + "\"")
+      }
+
+    }
+    return embed;
   }
 }
 function coord(fac) {
@@ -279,5 +349,8 @@ module.exports = {
   grid_number: grid_number,
   grid_letter: grid_letter,
   Facility: Facility,
-  coord: coord
+  coord: coord,
+  add: add,
+  facs_name_map: facs_name_map,
+  get_count: get_count,
 }
