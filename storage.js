@@ -100,11 +100,14 @@ hexes1array.forEach((value, key, map) => hexes1.push(new StringSelectMenuOptionB
 )
 );
 
-const grid_letter = [
+const letter_map = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
 ]
-const grid_number = [
+const number_map = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+]
+const keypad_map = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9,
 ]
 
 const testhex = [
@@ -346,11 +349,13 @@ module.exports = {
   hexes1array: hexes1array,
   hexes2: hexes2,
   testhex: testhex,
-  grid_number: grid_number,
-  grid_letter: grid_letter,
+  number_map: number_map,
+  letter_map: letter_map,
   Facility: Facility,
   coord: coord,
   add: add,
   facs_name_map: facs_name_map,
   get_count: get_count,
+  get_name_index: get_name_index,
+  keypad_map: keypad_map,
 }

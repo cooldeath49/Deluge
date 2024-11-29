@@ -6,7 +6,6 @@ module.exports = {
         // console.log(interaction.customId);
 		if (interaction.isModalSubmit()) interaction.deferUpdate();
 		if (interaction.isAutocomplete()) {
-			interaction.deferUpdate();
 			let command = interaction.client.commands.get(interaction.commandName);
 
 			if (!command) {

@@ -8,11 +8,11 @@ const data = new SlashCommandBuilder()
     .setName("hex")
     .setDescription("Hex to search for facilities")
     .setAutocomplete(true)
-    
-    );
+
+  );
 
 function printFac(fac) {
-  return fac.regiment + " facility in " + storage.coord(fac) + " id=" + fac.id + "   *last updated <t:" + Math.floor(fac.lastupdated/1000) + ":R>*";
+  return fac.regiment + " facility in " + storage.coord(fac) + " id=" + fac.id + "   *last updated <t:" + Math.floor(fac.lastupdated / 1000) + ":R>*";
 }
 
 
@@ -25,13 +25,14 @@ module.exports = {
       filtered.map(choice => ({ name: choice, value: choice })),
     )
   },
-  async execute(interaction2) {
+  async execute(interaction) {
     if (storage.get_count() == 0) {
-      interaction2.reply("No facilities have been registered!");
+      interaction.reply("No facilities have been registered!");
       return;
     } else {
-      let target = interaction2.options.getString('hex');
-      console.log(target);
+      await interaction.deferReply();
+      let target = interaction.options.getString('hex');
+      console.log(!target);
       if (!target) {
         let str = "**All Facilities**\n";
         for (let i = 0; i < storage.facs_name_map.length; i++) {
@@ -41,11 +42,28 @@ module.exports = {
               str = str + allfacs[i][k].toString() + "\n";
             }
           }
-          
-        interaction2.reply(str);
         }
-      // } else if () {
+        console.log("bruh");
+        interaction.followUp(str);
+        // } else if () {
 
+      } else {
+        let ind = storage.get_name_index(target);
+        if (ind >= 0) {
+          if (storage.allfacs[ind].length > 0) {
+            let str = "";
+            str = str + "**" + storage.facs_name_map[ind] + "**\n";
+            for (let k = 0; k < storage.allfacs[ind].length; k++) {
+              str = str + allfacs[ind][k].toString() + "\n";
+            }
+            await interaction.followUp(str);
+          } else {
+            await interaction.followUp(target + " has no registered facilities!");
+          }
+        } else {
+          await interaction.followUp("Could not find target hex \"" + target + "\"!");
+        }
+        
       }
     }
   }

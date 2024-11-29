@@ -13,8 +13,9 @@ const hexes2 = storage.hexes2;
 const Facility = storage.Facility;
 let chosen_hex;
 let chosen_town;
-let keypad_letter;
-let keypad_number;
+let grid_letter;
+let grid_number;
+let keypad
 let relative;
 let field;
 const data = new SlashCommandBuilder()
@@ -144,14 +145,14 @@ async function handleInteraction(interaction) {
   } else if (interaction.customId == "town select") {
     chosen_town = interaction.values[0];
     select.spliceOptions(0, 25)
-      .addOptions(storage.grid_letter.map((letter) => new StringSelectMenuOptionBuilder()
+      .addOptions(storage.letter_map.map((letter) => new StringSelectMenuOptionBuilder()
         .setLabel(letter.toString())
         .setDescription(letter.toString())
         .setValue(letter.toString())
       )
       )
       .setCustomId('grid letter select')
-      .setPlaceholder('Select the keypad grid-letter of your location:')
+      .setPlaceholder('Select the grid letter of your location:')
       ;
 
     row = new ActionRowBuilder().addComponents(select);
@@ -163,16 +164,16 @@ async function handleInteraction(interaction) {
 
     //Selection made for letter
   } else if (interaction.customId == "grid letter select") {
-    keypad_letter = interaction.values[0];
+    grid_letter = interaction.values[0];
     select.spliceOptions(0, 25)
-      .addOptions(storage.grid_number.map((number) => new StringSelectMenuOptionBuilder()
+      .addOptions(storage.number_map.map((number) => new StringSelectMenuOptionBuilder()
         .setLabel(number.toString())
         .setDescription(number.toString())
         .setValue(number.toString())
       )
       )
       .setCustomId('grid number select')
-      .setPlaceholder('Select the keypad grid-number of your location:')
+      .setPlaceholder('Select the grid number of your location:')
       ;
 
     row = new ActionRowBuilder().addComponents(select);
@@ -184,7 +185,26 @@ async function handleInteraction(interaction) {
 
     //Selection made for number
   } else if (interaction.customId == "grid number select") {
-    keypad_number = interaction.values[0];
+    grid_number = interaction.values[0];
+    select.spliceOptions(0, 25)
+      .addOptions(storage.keypad_map.map((number) => new StringSelectMenuOptionBuilder()
+        .setLabel(number.toString())
+        .setDescription(number.toString())
+        .setValue(number.toString())
+      )
+      )
+      .setCustomId('keypad select')
+      .setPlaceholder('Select the keypad of your location within ' + grid_letter + grid_number.toString() + ':')
+      ;
+
+    row = new ActionRowBuilder().addComponents(select);
+    buttonrow = new ActionRowBuilder().addComponents(cancel);
+    await interaction.update({
+      content: 'Select keypad number:',
+      components: [row, buttonrow],
+    });
+  } else if (interaction.customId == "keypad select") {
+    keypad = interaction.values[0];
     select.spliceOptions(0, 25)
       .addOptions(new StringSelectMenuOptionBuilder()
         .setLabel("Scrap Field")
@@ -324,7 +344,7 @@ async function handleInteraction(interaction) {
       let embed2 = new EmbedBuilder()
       .setTitle("Successfully added a facility!")
       
-      let fac = storage.add(chosen_hex, chosen_town, keypad_letter, keypad_number, regiment, contact, nickname, field, relative);
+      let fac = storage.add(chosen_hex, chosen_town, grid_letter, grid_number, regiment, contact, nickname, field, relative);
 
       await interaction.editReply({ content: "", embeds: [embed2, fac.toEmbed()], components: [] })
   
@@ -334,7 +354,7 @@ async function handleInteraction(interaction) {
       //   handleInteraction(i2);
       // });
     }
-    // keypad_number = interaction.values[0];
+    // grid_number = interaction.values[0];
     
 
   }
