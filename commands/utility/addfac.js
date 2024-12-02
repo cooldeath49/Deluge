@@ -11,6 +11,7 @@ const hexes1 = storage.hexes1;
 const hexes1array = storage.hexes1array;
 const hexes2 = storage.hexes2;
 const Facility = storage.Facility;
+const paste_regex = /([a-zA-Z ]+)-([A-Q])([1-9]|1[0-5])k([1-9])/
 let chosen_hex;
 let chosen_town;
 let grid_letter;
@@ -60,6 +61,7 @@ async function handleInteraction(interaction) {
       components: [row, buttonrow],
       embeds: [],
     });
+
     //Paste coordinates
   } else if (interaction.customId == "paste") {
     let modal = new ModalBuilder()
@@ -78,6 +80,25 @@ async function handleInteraction(interaction) {
     modal.addComponents(row);
 
     await interaction.showModal(modal);
+
+    let submitted = await interaction.awaitModalSubmit({
+      time: 60000,
+      filter: i => i.user.id === interaction.user.id,
+    }).catch(error => {
+      // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
+      console.error(error)
+      return null
+    })
+
+    let parse = submitted.fields.getTextInputValue("paste text");
+
+    let groups = parse.match(paste_regex);
+    if (groups) {
+      console.log(groups[0], groups[1], groups[2], groups[3], groups[4]);
+    } else {
+      console.log("incorrectly formatted pasted coordinates");
+    }
+
 
   } else if (interaction.customId == "switch page 1") { //switch to the second page
     select.spliceOptions(0, 19)
