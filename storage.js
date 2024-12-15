@@ -321,7 +321,7 @@ class Facility {
   toEmbed() {
     let embed = new EmbedBuilder()
       .addFields(
-        { name: "Lead Contact", value: this.contact },
+        { name: "Lead Contact", value: this.contact},
         { name: "Hex", value: this.hex, inline: true },
         { name: "Town", value: this.town, inline: true },
         { name: "Grid", value: this.letter + this.number.toString(), inline: true },
@@ -337,6 +337,21 @@ class Facility {
 
     }
     return embed;
+  }
+
+  toEmbedData() {
+    return [
+      this.hex,
+      this.town,
+      this.letter,
+      this.number,
+      this.regiment,
+      this.contact,
+      this.nickname,
+      this.field,
+      this.relative,
+      this.id,
+    ]
   }
 }
 function coord(fac) {

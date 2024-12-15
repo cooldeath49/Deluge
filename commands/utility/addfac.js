@@ -48,7 +48,7 @@ async function handleInteraction(interaction) {
       components: [],
       embeds: [],
     });
-  } else if (interaction.customId == "manual") {
+  } else if (interaction.customId == "add") {
     select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
       .setPlaceholder('Select hex of your facility:')
@@ -384,24 +384,18 @@ async function handleInteraction(interaction) {
 module.exports = {
   data: data,
   async execute(interaction) {
-    let manualbutton = new ButtonBuilder()
-      .setCustomId("manual")
-      .setLabel("Manual location input")
-      .setStyle(ButtonStyle.Primary)
+    let addbutton = new ButtonBuilder()
+      .setCustomId("add")
+      .setLabel("Add Facility")
+      .setStyle(ButtonStyle.Success)
 
-    let pastebutton = new ButtonBuilder()
-      .setCustomId("paste")
-      .setLabel("I have coordinates copied to my clipboard")
-      .setStyle(ButtonStyle.Primary)
+    let row = new ActionRowBuilder().addComponents(addbutton, cancel);
 
-    let row = new ActionRowBuilder().addComponents(manualbutton, pastebutton);
-    let buttonrow = new ActionRowBuilder().addComponents(cancel);
-
-    let embed = new EmbedBuilder().setTitle("How would you like to choose your facility location?")
+    let embed = new EmbedBuilder().setTitle("Would you like to add a facility?")
 
     let response = await interaction.reply({
       content: "",
-      components: [row, buttonrow],
+      components: [row],
       embeds: [embed],
     })
 

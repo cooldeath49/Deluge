@@ -36,9 +36,10 @@ module.exports = {
       if (!target) {
         let str = "**All Facilities**\n";
         for (let i = 0; i < storage.facs_name_map.length; i++) {
-          if (storage.allfacs[i].length > 0) {
+          if (allfacs[i].length > 0) {
             str = str + "**" + storage.facs_name_map[i] + "**\n";
-            for (let k = 0; k < storage.allfacs[i].length; k++) {
+            for (let k = 0; k < allfacs[i].length; k++) {
+              let fac_details = allfacs[i][k].toEmbedData();
               str = str + allfacs[i][k].toString() + "\n";
             }
           }
