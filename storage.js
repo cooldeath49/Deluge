@@ -15,11 +15,6 @@ function get_name_index(str) {
   return facs_name_map.indexOf(str);
 }
 
-var allfacs = [[], [], [], []];
-
-let global_id = 0;
-let global_count = 0;
-
 /*
 0: The Linn of Mercy
 1: The Deadlands
@@ -28,18 +23,6 @@ let global_count = 0;
 */
 
 //Given a set of parameters, adds a facility to the list and returns its object
-function add(...args) { 
-  let facility = new Facility(...args, global_id++);
-  allfacs[get_name_index(facility.hex)].push(facility);
-  console.log("Added facility");
-  global_count++;
-  console.log(global_count);
-  return facility;
-}
-
-function get_count() {
-  return global_count;
-}
 
 var hexes1 = [];
 // var hexes2 = [];
@@ -91,13 +74,190 @@ var hexes1array = new Map()
     "Macha's Keening",
     "Victa",
     "Scythe",
-  ])
+  ],)
 
-hexes1array.forEach((value, key, map) => hexes1.push(new StringSelectMenuOptionBuilder()
+class Facility {
+  hex;
+  town;
+  letter;
+  number;
+  regiment;
+  contact;
+  nickname;
+  field;
+  relative;
+  id;
+
+  constructor(args, id) {
+    this.hex = args[0];
+    this.town = args[1];
+    this.letter = args[2];
+    this.number = args[3];
+    this.regiment = args[4];
+    this.contact = args[5];
+    this.nickname = args[6];
+    this.field = args[7];
+    this.relative = args[8];
+    this.id = id;
+  }
+
+  update() {
+    lastupdated = Date.now();
+  }
+
+  toString() {
+    if (this.field) {
+      return this.town + " " + this.field + " (" + this.letter + this.number.toString() + "): \"" + this.nickname + "\" run by " + this.regiment + " (" + this.contact + ")";
+    } else {
+      return this.relative + " of " + this.town + " (" + this.letter + this.number.toString() + "): \"" + this.nickname + "\" run by " + this.regiment + " (" + this.contact + ")";
+    }
+  }
+
+  toEmbed() {
+    let embed = new EmbedBuilder()
+      .addFields(
+        { name: "Lead Contact", value: this.contact},
+        { name: "Hex", value: this.hex, inline: true },
+        { name: "Town", value: this.town, inline: true },
+        { name: "Grid", value: this.letter + this.number.toString(), inline: true },
+      )
+    if (this.field) {
+      embed.setTitle(this.town + " " + this.field + ": \"" + this.nickname + "\"")
+    } else {
+      if (this.relative == "Zero") {
+        embed.setTitle(this.town + ": \"" + this.nickname + "\"")
+      } else {
+        embed.setTitle(this.relative + " of " + this.town + ": \"" + this.nickname + "\"")
+      }
+
+    }
+    return embed;
+  }
+
+  toEmbedData() {
+    return [
+      this.hex,
+      this.town,
+      this.letter,
+      this.number,
+      this.regiment,
+      this.contact,
+      this.nickname,
+      this.field,
+      this.relative,
+      this.id,
+    ]
+  }
+}
+
+class AllContainer {
+  global_count;
+  global_id;
+  hexes;
+  hexes_str_array;
+
+  constructor() {
+    this.hexes = [];
+    this.global_count = 0;
+    this.global_id = 0;
+    this.hexes_str_array = [];
+  }
+  
+  //Runs in O(n), returns hex object
+  get_hex(hex) {
+    for (ele in hexes) {
+      if (hexes[ele].name == hex) {
+        return hexes[ele];
+      }
+    }
+  }
+  //Runs in O(n^2), returns town object 
+  get_town(name) {
+    for (let ele in this.hexes) {
+      return hexes[ele].get_town(name);
+    }
+  }
+
+  add(args) {
+    let facility = new Facility(args, ++this.global_id);
+    let hex = get_hex(args[0]);
+    hex.add(facility);
+
+    console.log("Added facility, count " + ++this.global_count);
+    return facility;
+  }
+
+  hexes_tostring() {
+    for (let ele in this.hexes) {
+      this.hexes_str_array.push(this.hexes[ele].name);
+    }
+  }
+}
+
+class Hex {
+  name;
+  towns;
+  fac_count;
+
+  constructor(name) {
+    this.name = name;
+    this.towns = [];
+    this.fac_count = 0;
+  }
+  //Runs in O(n), returns town object associated with the town name
+  get_town(name) {
+    for (let ele in this.towns) {
+      if (this.towns[ele].name == name) {
+        return this.towns[ele];
+      }
+    }
+    return "Couldn't find specified town " + name;
+  }
+
+  add(fac) {
+    let town = get_town(fac.town);
+    town.add(fac);
+    fac_count++;
+  }
+}
+
+class Town {
+  name;
+  facilities;
+  fac_count;
+
+  constructor(name) {
+    this.name = name;
+    this.facilities = [];
+    this.fac_count = 0;
+  }
+  //Runs in O(n), returns facility object associated with id
+  search_fac(id) {
+
+  }
+
+  add(fac) {
+    this.facilities.push(fac);
+    this.town_count++;
+  }
+}
+
+let allfacs = new AllContainer();
+
+hexes1array.forEach((value, key, map) => 
+  {hexes1.push(new StringSelectMenuOptionBuilder()
   .setLabel(key)
   .setDescription(key)
   .setValue(key)
-)
+  );
+
+  let hex = new Hex(key);
+  for (let town in value) {
+    hex.towns.push(new Town(value[town]));
+  };
+  allfacs.hexes.push(hex);
+  allfacs.hexes_tostring();
+}
 );
 
 const letter_map = [
@@ -280,80 +440,6 @@ const hexes2 = [{
 ]
 
 
-
-class Facility {
-  hex;
-  town;
-  letter;
-  number;
-  regiment;
-  contact;
-  nickname;
-  field;
-  relative;
-  id;
-
-  constructor(hex, town, letter, num, reg, contact, nickname, field, relative, id) {
-    this.hex = hex;
-    this.town = town;
-    this.letter = letter;
-    this.number = num;
-    this.regiment = reg;
-    this.contact = contact;
-    this.nickname = nickname;
-    this.field = field;
-    this.relative = relative;
-    this.id = id;
-  }
-
-  update() {
-    lastupdated = Date.now();
-  }
-
-  toString() {
-    if (this.field) {
-      return this.town + " " + this.field + " (" + this.letter + this.number.toString() + "): \"" + this.nickname + "\" run by " + this.regiment + " (" + this.contact + ")";
-    } else {
-      return this.relative + " of " + this.town + " (" + this.letter + this.number.toString() + "): \"" + this.nickname + "\" run by " + this.regiment + " (" + this.contact + ")";
-    }
-  }
-
-  toEmbed() {
-    let embed = new EmbedBuilder()
-      .addFields(
-        { name: "Lead Contact", value: this.contact},
-        { name: "Hex", value: this.hex, inline: true },
-        { name: "Town", value: this.town, inline: true },
-        { name: "Grid", value: this.letter + this.number.toString(), inline: true },
-      )
-    if (this.field) {
-      embed.setTitle(this.town + " " + this.field + ": \"" + this.nickname + "\"")
-    } else {
-      if (this.relative == "Zero") {
-        embed.setTitle(this.town + ": \"" + this.nickname + "\"")
-      } else {
-        embed.setTitle(this.relative + " of " + this.town + ": \"" + this.nickname + "\"")
-      }
-
-    }
-    return embed;
-  }
-
-  toEmbedData() {
-    return [
-      this.hex,
-      this.town,
-      this.letter,
-      this.number,
-      this.regiment,
-      this.contact,
-      this.nickname,
-      this.field,
-      this.relative,
-      this.id,
-    ]
-  }
-}
 function coord(fac) {
   return fac.hex + "-" + fac.letter + fac.letternumber + "k" + fac.grid;
 }
@@ -368,9 +454,7 @@ module.exports = {
   letter_map: letter_map,
   Facility: Facility,
   coord: coord,
-  add: add,
   facs_name_map: facs_name_map,
-  get_count: get_count,
   get_name_index: get_name_index,
   keypad_map: keypad_map,
 }

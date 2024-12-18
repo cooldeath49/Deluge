@@ -320,9 +320,9 @@ async function handleInteraction(interaction) {
   
       let regimentinput = new TextInputBuilder()
         .setCustomId("regiment")
-        .setLabel("What regiment owns this? N/A if none")
+        .setLabel("What regiment owns this? Leave empty if none")
         .setStyle(TextInputStyle.Short)
-        .setRequired(true)
+        .setRequired(false)
         .setMaxLength(30)
   
       let contactinput = new TextInputBuilder()
@@ -365,7 +365,7 @@ async function handleInteraction(interaction) {
       let embed2 = new EmbedBuilder()
       .setTitle("Successfully added a facility!")
       
-      let fac = storage.add(chosen_hex, chosen_town, grid_letter, grid_number, regiment, contact, nickname, field, relative);
+      let fac = allfacs.add([chosen_hex, chosen_town, grid_letter, grid_number, regiment, contact, nickname, field, relative]);
 
       await interaction.editReply({ content: "", embeds: [embed2, fac.toEmbed()], components: [] })
   
