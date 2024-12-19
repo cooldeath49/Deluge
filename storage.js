@@ -165,23 +165,27 @@ class AllContainer {
   
   //Runs in O(n), returns hex object
   get_hex(hex) {
-    for (ele in hexes) {
-      if (hexes[ele].name == hex) {
-        return hexes[ele];
+    for (let ele in this.hexes) {
+      if (this.hexes[ele].name == hex) {
+        return this.hexes[ele];
       }
     }
+    return null;
   }
   //Runs in O(n^2), returns town object 
   get_town(name) {
     for (let ele in this.hexes) {
-      return hexes[ele].get_town(name);
+      return this.hexes[ele].get_town(name);
     }
+    return null; 
   }
 
   add(args) {
-    let facility = new Facility(args, ++this.global_id);
-    let hex = get_hex(args[0]);
+    this.global_id++;
+    let facility = new Facility(args, this.global_id);
+    let hex = this.get_hex(args[0]);
     hex.add(facility);
+    this.global_count++;
 
     console.log("Added facility, count " + ++this.global_count);
     return facility;
@@ -215,9 +219,9 @@ class Hex {
   }
 
   add(fac) {
-    let town = get_town(fac.town);
+    let town = this.get_town(fac.town);
     town.add(fac);
-    fac_count++;
+    this.fac_count++;
   }
 }
 
@@ -256,9 +260,9 @@ hexes1array.forEach((value, key, map) =>
     hex.towns.push(new Town(value[town]));
   };
   allfacs.hexes.push(hex);
-  allfacs.hexes_tostring();
 }
 );
+allfacs.hexes_tostring();
 
 const letter_map = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
