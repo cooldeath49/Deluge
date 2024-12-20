@@ -23,6 +23,7 @@ function getHexEmbed(hex) {
     let town = hex.towns[k];
     let townstr = "";
     if (town.fac_count > 0) {
+      console.log("Detected facilities in town " + town.name);
       for (let j = 0; j < town.facilities.length; j++) {
         let fac = town.facilities[j];
         let fac_details = fac.toEmbedData();

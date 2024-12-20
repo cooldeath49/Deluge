@@ -242,7 +242,7 @@ class Town {
 
   add(fac) {
     this.facilities.push(fac);
-    this.town_count++;
+    this.fac_count++;
   }
 }
 

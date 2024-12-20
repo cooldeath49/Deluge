@@ -26,6 +26,7 @@ for (const folder of cmdFolders) { //iterate through all folder
   }
 }
 
+
 (async () => {
   try {
     console.log(`Started refreshing ${commands.length} application (/) commands.`);
