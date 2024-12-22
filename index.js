@@ -15,10 +15,6 @@ const {
 const fs = require("node:fs");
 const path = require("node:path");
 const storage = require('./storage.js');
-const allfacs = storage.allfacs;
-const allhexes = storage.allhexes;
-const Facility = storage.Facility;
-const config = require("./config.json");
 
 
 const client = new Client({
@@ -74,4 +70,4 @@ for (const file of eventFiles) {
 	}
 }
 
-client.login(config.TOKEN);
+client.login(process.env.TOKEN);
