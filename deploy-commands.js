@@ -3,8 +3,22 @@ const {
   Routes,
   CommandInteraction,
 } = require("discord.js");
-
-const rest = new REST().setToken(config.TOKEN);
+let config;
+let TOKEN;
+let APPID;
+let GULIDID;
+try {
+  config = require("./config.json");
+  TOKEN = config.TOKEN;
+  APPID = config.APPID;
+  GUILDID = config.GUILDID;
+} catch(error) {
+  console.log("Detected running in Railway, using environment variables...");
+  TOKEN = process.env.TOKEN;
+  APPID = process.env.APPID;
+  GUILDID = process.env.GUILDID;
+}
+const rest = new REST().setToken(TOKEN);
 const fs = require("node:fs");
 const path = require("node:path");
 const foldersPath = path.join(__dirname, "commands"); //Creates a path to the commands folder
@@ -32,7 +46,7 @@ for (const folder of cmdFolders) { //iterate through all folder
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
-      Routes.applicatiowrangnGuildCommands(process.env.APPID, process.env.GUILDID),
+      Routes.applicationGuildCommands(APPID, GUILDID),
       { body: commands },
     );
 

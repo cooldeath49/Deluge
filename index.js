@@ -14,8 +14,16 @@ const {
 // import Foxhole from 'foxhole-client';
 const fs = require("node:fs");
 const path = require("node:path");
-const storage = require('./storage.js');
 
+let config;
+let TOKEN;
+try {
+  config = require("./config.json");
+  TOKEN = config.TOKEN;
+} catch(error) {
+  console.log("Detected running in Railway, using environment variables...");
+  TOKEN = process.env.TOKEN;
+}
 
 const client = new Client({
   intents: [
@@ -25,19 +33,7 @@ const client = new Client({
   ],
 });
 
-class Coordinates {
-  grid;
-  keypad;
-  constructor(x, y) {
-    this.grid = x;
-    this.keypad = y;
-  }
-  
-}
-const attach = new AttachmentBuilder("./pinagain.png");
-
 client.commands = new Collection();
-
 
 const foldersPath = path.join(__dirname, "commands"); //Creates a path to the commands folder
 const cmdFolders = fs.readdirSync(foldersPath); //reads 'foldersPath' and returns a table of all contents
@@ -70,4 +66,4 @@ for (const file of eventFiles) {
 	}
 }
 
-client.login(process.env.TOKEN);
+client.login(TOKEN);
