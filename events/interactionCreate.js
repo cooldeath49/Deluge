@@ -3,7 +3,7 @@ const { Events } = require('discord.js');
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
-        // console.log(interaction.customId);
+        
 		if (interaction.isModalSubmit()) interaction.deferUpdate();
 		if (interaction.isAutocomplete()) {
 			let command = interaction.client.commands.get(interaction.commandName);
@@ -21,6 +21,8 @@ module.exports = {
 
 		}
 		if (!interaction.isChatInputCommand()) return;
+
+		console.log("Detected command " + interaction.commandName + " from user " + interaction.user.displayName);
 
 		const command = interaction.client.commands.get(interaction.commandName);
 

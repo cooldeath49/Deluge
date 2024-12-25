@@ -76,6 +76,9 @@ var hexes1array = new Map()
     "Scythe",
   ],)
 
+let artilleryItems = ["120mm", "150mm", "300mm"];
+
+
 class Facility {
   hex;
   town;
@@ -87,6 +90,43 @@ class Facility {
   field;
   relative;
   id;
+  primary;
+  secondary;
+
+
+  productionIterator = class { //anonymous class containing methods to parse and iterate
+    //overkill...? probably, lol
+    table;
+    quantity_table;
+    constructor(table, quantity) {
+      this.table = table;
+      if (quantity) {
+        this.quantity_table = quantity;
+      } else {
+        this.quantity_table = {};
+        for (let ele in table) {
+          quantity[ele] = [0, Date.now()];
+        }
+      }
+    }
+
+    getString() {
+      let str = "";
+      if (this.table.length > 0) {
+        for (let i = 0; i< this.table.length; i++) {
+          if (i == this.table.length - 1) {
+            str = str + this.table[i];
+          } else {
+            str = str + this.table[i] + ", ";
+          }
+        }
+        return str;
+      } else {
+        return "None listed";
+      }
+     
+    }
+  }
 
   constructor(args, id) {
     this.hex = args[0];
@@ -98,7 +138,9 @@ class Facility {
     this.nickname = args[6];
     this.field = args[7];
     this.relative = args[8];
-    this.id = id;
+    this.id = args[9] ?? id;
+    this.primary = args[10] ?? new this.productionIterator([]);
+    this.secondary = args[11] ?? new this.productionIterator([]);
   }
 
   update() {
@@ -114,13 +156,20 @@ class Facility {
   }
 
   toEmbed() {
+    let embeds = [];
     let embed = new EmbedBuilder()
-      .addFields(
-        { name: "Lead Contact", value: this.contact},
-        { name: "Hex", value: this.hex, inline: true },
-        { name: "Town", value: this.town, inline: true },
-        { name: "Grid", value: this.letter + this.number.toString(), inline: true },
-      )
+    .addFields({name: "Lead Contact", value: this.contact, inline: true})
+    if (this.regiment) {
+      embed.addFields({name: "Regiment", value: this.regiment, inline: true});
+    } else {
+      embed.addFields({name: "Regiment", value: "N/A", inline: true});
+    }
+    embed.addFields(
+      { name: '\u200B', value: '\u200B' },
+      { name: "Hex", value: this.hex, inline: true},
+      { name: "Town", value: this.town, inline: true },
+      { name: "Grid", value: this.letter + this.number.toString(), inline: true },
+    )
     if (this.field) {
       embed.setTitle(this.town + " " + this.field + ": \"" + this.nickname + "\"")
     } else {
@@ -129,9 +178,27 @@ class Facility {
       } else {
         embed.setTitle(this.relative + " of " + this.town + ": \"" + this.nickname + "\"")
       }
-
     }
-    return embed;
+    embeds.push(embed);
+    embed.addFields(
+      {name: '\u200B', value: '\u200B' },
+      {name: "Primary Production", value: this.primary.getString(), inline: true},
+      {name: "Secondary Production", value: this.secondary.getString(), inline: true}
+    );
+
+    if (this.primary.table.length > 0) {
+      let primary_quantity = this.primary.quantity_table;
+      let primaryEmbed = new EmbedBuilder()
+      .setTitle("Primary Production Quantities")
+      for (let item in primary_quantity) {
+        primaryEmbed.addFields({name: item, value: primary_quantity[0] + " - *last updated <t:" + primary_quantity[1] + ":R>*"});
+      }
+
+      embeds.push(primaryEmbed);
+    }
+
+    
+    return embeds;
   }
 
   toEmbedData() {
@@ -146,6 +213,8 @@ class Facility {
       this.field,
       this.relative,
       this.id,
+      this.primary,
+      this.secondary,
     ]
   }
 }
@@ -154,10 +223,12 @@ class AllContainer {
   global_count;
   global_id;
   hexes;
+  facility_id_tracker;
   hexes_str_array;
 
   constructor() {
     this.hexes = [];
+    this.facility_id_tracker = [];
     this.global_count = 0;
     this.global_id = 0;
     this.hexes_str_array = [];
@@ -185,9 +256,10 @@ class AllContainer {
     let facility = new Facility(args, this.global_id);
     let hex = this.get_hex(args[0]);
     hex.add(facility);
+    this.facility_id_tracker[this.global_id] = facility;
     this.global_count++;
 
-    console.log("Added facility, count " + ++this.global_count);
+    console.log("Added facility, id " + this.global_id + " with the following data: " + args);
     return facility;
   }
 
@@ -421,7 +493,7 @@ const hexes2 = [{
   description: "Great March",
   value: "Great March",
 },
-{
+{ 
   label: "Terminus",
   description: "Terminus",
   value: "Terminus",
@@ -461,4 +533,5 @@ module.exports = {
   facs_name_map: facs_name_map,
   get_name_index: get_name_index,
   keypad_map: keypad_map,
+  artilleryItems: artilleryItems,
 }

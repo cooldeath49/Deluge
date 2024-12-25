@@ -6,7 +6,7 @@ const {
 let config;
 let TOKEN;
 let APPID;
-let GULIDID;
+let GUILDID;
 try {
   config = require("./config.json");
   TOKEN = config.TOKEN;
@@ -46,7 +46,8 @@ for (const folder of cmdFolders) { //iterate through all folder
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
-      Routes.applicationGuildCommands(APPID, GUILDID),
+      // Routes.applicationGuildCommands(APPID, GUILDID),
+      Routes.applicationCommands(APPID),
       { body: commands },
     );
 

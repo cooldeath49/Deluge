@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, Embed } = require("discord.js");
 const storage = require("../../storage.js");
 const allfacs = storage.allfacs;
 const data = new SlashCommandBuilder()
@@ -11,9 +11,6 @@ const data = new SlashCommandBuilder()
 
   );
 
-function printFac(fac) {
-  return fac.regiment + " facility in " + storage.coord(fac) + " id=" + fac.id + "   *last updated <t:" + Math.floor(fac.lastupdated / 1000) + ":R>*";
-}
 
 //assumes hex has at least one facility
 function getHexEmbed(hex) {
@@ -38,14 +35,15 @@ function getHexEmbed(hex) {
         this.field, 7
         this.relative, 8
         this.id, 9
+        this.primary, 10
+        this.secondary, 11
         */
-        townstr = townstr + "\"" + fac_details[6] + "\" - ID " + fac_details[9] + "\n";
+        townstr = townstr + "\"" + fac_details[6] + "\" - " + fac_details[10].getString() + " - " + fac_details[5] + " - " + fac_details[9] + "\n";
       }
       embed.addFields({name: town.name, value: townstr});
     }
     
   }
-  embed.setDescription("If a town is undisplayed, then there are no registered facilities in that town");
   return embed;
 }
 
@@ -63,68 +61,29 @@ module.exports = {
       interaction.reply("No facilities have been registered!");
       return;
     } else {
-      let embed_array = [];
       await interaction.deferReply();
       let target = interaction.options.getString('hex');
-      console.log(target);
-      if (!target) {
-        let str = "**All Facilities**\n";
+      if (!target) { //No target specified, load all facilities
+        let embed_array = [];
+        let headerEmbed = new EmbedBuilder()
+        .setTitle("All Facilities")
+        .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
+        embed_array.push(headerEmbed);
+
         for (let i = 0; i < allfacs.hexes.length; i++) {
           let hex = allfacs.hexes[i];
           if (hex.fac_count > 0) {
             embed_array.push(getHexEmbed(hex));
           }
         }
-        console.log("bruh");
         interaction.followUp({content: "", embeds: embed_array});
 
       } else {
         let hex = allfacs.get_hex(target);
         if (hex) {
-          if (hex.global_count > 0) {
-            let town_str = "";
-            let runby_str = "";
-            let id_str = "";
-
-            let embed = new EmbedBuilder()
-            .setTitle(hex.name + " Facilities")
-
-            let str = "";
-            str = str + "**" + storage.facs_name_map[ind] + "**\n";
-            for (let i = 0; i < hex.towns.length; i++) {
-              let town = hex.towns[i];
-
-              for (let j = 0; j < towns.facilities.length; j++) {
-
-              }
-              let fac_details = allfacs[ind][k].toEmbedData();
-              /*
-              this.hex, 0
-              this.town, 1
-              this.letter, 2
-              this.number, 3
-              this.regiment, 4
-              this.contact, 5
-              this.nickname, 6
-              this.field, 7
-              this.relative, 8
-              this.id, 9
-              */
-              town_str = town_str + fac_details[1] + "\n";
-              if (fac_details[4]) {
-                runby_str = runby_str + fac_details[4] + "\n";
-              } else {
-                runby_str = runby_str + fac_details[5] + "\n";
-              }
-              id_str = id_str + fac_details[9] + "\n";
-
-              str = str + allfacs[ind][k].toString() + "\n";
-            }
-            embed.addFields(
-              {name: "Town", value: town_str, inline: true},
-              {name: "Run By", value: runby_str, inline: true},
-              {name: "ID", value: id_str, inline: true}
-            )
+          if (hex.fac_count > 0) {
+            let embed = getHexEmbed(hex);
+            embed.setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
             await interaction.followUp({content: "", embeds: [embed]});
           } else {
             await interaction.followUp(target + " has no registered facilities!");

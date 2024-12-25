@@ -4,8 +4,6 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Modal
 
 } = require('discord.js');
 const storage = require('../../storage.js');
-const order = [
-]
 const allfacs = storage.allfacs;
 const hexes1 = storage.hexes1;
 const hexes1array = storage.hexes1array;
@@ -48,6 +46,13 @@ async function handleInteraction(interaction) {
       components: [],
       embeds: [],
     });
+  } else if (interaction.customId == "test facility") {
+    allfacs.add(["Marban Hollow", "Lockheed", "A", 4, "ISO", "cooldeath49", "nickname", null, "East"]);
+    await interaction.update({
+      content: 'Added test facility',
+      components: [],
+      embeds: [],
+    });
   } else if (interaction.customId == "add") {
     select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
@@ -63,43 +68,6 @@ async function handleInteraction(interaction) {
     });
 
     //Paste coordinates
-  } else if (interaction.customId == "paste") {
-    let modal = new ModalBuilder()
-      .setCustomId("paste coordinates")
-      .setTitle("Paste Coordinates")
-
-    let pasteinput = new TextInputBuilder()
-      .setCustomId("paste text")
-      .setLabel("Paste click-copied coordinates here")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true)
-      .setMaxLength(100)
-
-    let row = new ActionRowBuilder().addComponents(pasteinput);
-
-    modal.addComponents(row);
-
-    await interaction.showModal(modal);
-
-    let submitted = await interaction.awaitModalSubmit({
-      time: 60000,
-      filter: i => i.user.id === interaction.user.id,
-    }).catch(error => {
-      // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
-      console.error(error)
-      return null
-    })
-
-    let parse = submitted.fields.getTextInputValue("paste text");
-
-    let groups = parse.match(paste_regex);
-    if (groups) {
-      console.log(groups[0], groups[1], groups[2], groups[3], groups[4]);
-    } else {
-      console.log("incorrectly formatted pasted coordinates");
-    }
-
-
   } else if (interaction.customId == "switch page 1") { //switch to the second page
     select.spliceOptions(0, 19)
       .addOptions(hexes2.map((hex) => new StringSelectMenuOptionBuilder()
@@ -147,10 +115,10 @@ async function handleInteraction(interaction) {
     console.log(interaction.values);
     select.spliceOptions(0, 25)
       .addOptions(hexes1array.get(chosen_hex).map((town) => new StringSelectMenuOptionBuilder()
-      .setLabel(town)
-      .setDescription(town)
-      .setValue(town)
-    ))
+        .setLabel(town)
+        .setDescription(town)
+        .setValue(town)
+      ))
       .setCustomId('town select')
       .setPlaceholder('Select town of your facility:')
       ;
@@ -317,38 +285,38 @@ async function handleInteraction(interaction) {
       const modal = new ModalBuilder()
         .setCustomId("regiment modal")
         .setTitle("Regiment")
-  
+
       let regimentinput = new TextInputBuilder()
         .setCustomId("regiment")
         .setLabel("What regiment owns this? Leave empty if none")
         .setStyle(TextInputStyle.Short)
         .setRequired(false)
         .setMaxLength(30)
-  
+
       let contactinput = new TextInputBuilder()
         .setCustomId("contact")
         .setLabel("Discord username of primary point of contact")
         .setStyle(TextInputStyle.Short)
         .setRequired(true)
         .setMaxLength(60)
-  
+
       let nicknameinput = new TextInputBuilder()
         .setCustomId("nickname")
         .setLabel("Nickname for your facility?")
         .setStyle(TextInputStyle.Short)
         .setRequired(true)
         .setMaxLength(100)
-  
-  
+
+
       row = new ActionRowBuilder().addComponents(regimentinput)
       let secondrow = new ActionRowBuilder().addComponents(contactinput)
       let thirdrow = new ActionRowBuilder().addComponents(nicknameinput)
-  
+
       modal.addComponents(row, secondrow, thirdrow);
-  
+
       await interaction.showModal(modal);
-  
-  
+
+
       let submitted = await interaction.awaitModalSubmit({
         time: 60000,
         filter: i => i.user.id === interaction.user.id,
@@ -357,18 +325,18 @@ async function handleInteraction(interaction) {
         console.error(error)
         return null
       })
-  
+
       regiment = submitted.fields.getTextInputValue("regiment");
       contact = submitted.fields.getTextInputValue("contact");
       nickname = submitted.fields.getTextInputValue("nickname");
-      
+
       let embed2 = new EmbedBuilder()
-      .setTitle("Successfully added a facility!")
-      
+        .setTitle("Successfully added a facility!")
+
       let fac = allfacs.add([chosen_hex, chosen_town, grid_letter, grid_number, regiment, contact, nickname, field, relative]);
 
-      await interaction.editReply({ content: "", embeds: [embed2, fac.toEmbed()], components: [] })
-  
+      await interaction.editReply({ content: "", embeds: [embed2].concat(fac.toEmbed()), components: [] })
+
       // const modalcollector = response.createMessageComponentCollector({ componentType: ComponentType.TextInput, time: 3_600_000 });
       // modalcollector.on('collect', async i2 => {
       //   console.log(i2);
@@ -376,7 +344,7 @@ async function handleInteraction(interaction) {
       // });
     }
     // grid_number = interaction.values[0];
-    
+
 
   }
 }
@@ -389,7 +357,12 @@ module.exports = {
       .setLabel("Add Facility")
       .setStyle(ButtonStyle.Success)
 
-    let row = new ActionRowBuilder().addComponents(addbutton, cancel);
+    let testbutton = new ButtonBuilder() //for debugging only
+      .setCustomId("test facility")
+      .setLabel("Add Test Facility")
+      .setStyle(ButtonStyle.Secondary)
+
+    let row = new ActionRowBuilder().addComponents(addbutton, cancel, testbutton);
 
     let embed = new EmbedBuilder().setTitle("Would you like to add a facility?")
 
@@ -399,25 +372,21 @@ module.exports = {
       embeds: [embed],
     })
 
-    const buttoncollector = response.createMessageComponentCollector({ componentType: ComponentType.Button, time: 3_600_000, 
-      filter: i => i.user.id === interaction.user.id, });
-    const stringcollector = response.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 3_600_000, filter: i => i.user.id === interaction.user.id, });
-
-    //Collect responses from buttons
-    buttoncollector.on('collect', async i2 => {
+    response.createMessageComponentCollector({
+      componentType: ComponentType.Button, 
+      time: 3_600_000,
+      filter: i => i.user.id === interaction.user.id,
+    }).on('collect', async i2 => {
       handleInteraction(i2);
     });
-
-    //String selection
-    stringcollector.on('collect', async i2 => {
-      console.log(i2.customId);
+    
+    response.createMessageComponentCollector({ 
+      componentType: ComponentType.StringSelect, 
+      time: 3_600_000, 
+      filter: i => i.user.id === interaction.user.id, 
+    }).on('collect', async i2 => {
       handleInteraction(i2);
-
     });
-
-
-
-
 
 
   }
