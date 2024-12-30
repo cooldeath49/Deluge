@@ -1,5 +1,11 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed } = require("discord.js");
 const storage = require("../../storage.js");
+const {MongoClient} = require("mongodb");
+const uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
+
+const mongo_client = new MongoClient(uri);
+const database = mongo_client.db("facilities").collection("facilities");
+
 const allfacs = storage.allfacs;
 const data = new SlashCommandBuilder()
   .setName("listfac")
@@ -11,40 +17,33 @@ const data = new SlashCommandBuilder()
 
   );
 
-
-//assumes hex has at least one facility
-function getHexEmbed(hex) {
-  let embed = new EmbedBuilder()
-  .setTitle(hex.name + " Facilities")
-  for (let k = 0; k < hex.towns.length; k++) {
-    let town = hex.towns[k];
-    let townstr = "";
-    if (town.fac_count > 0) {
-      console.log("Detected facilities in town " + town.name);
-      for (let j = 0; j < town.facilities.length; j++) {
-        let fac = town.facilities[j];
-        let fac_details = fac.toEmbedData();
-        /*
-        this.hex, 0
-        this.town, 1
-        this.letter, 2
-        this.number, 3
-        this.regiment, 4
-        this.contact, 5
-        this.nickname, 6
-        this.field, 7
-        this.relative, 8
-        this.id, 9
-        this.primary, 10
-        this.secondary, 11
-        */
-        townstr = townstr + "\"" + fac_details[6] + "\" - " + fac_details[10].getString() + " - " + fac_details[5] + " - " + fac_details[9] + "\n";
+async function getHexEmbed(hex_array) {
+  if (await database.countDocuments({hex: hex_array[0]}) > 0) {
+    let embed = new EmbedBuilder()
+    .setTitle(hex_array[0] + " Facilities");
+  
+    for (let k = 1; k < hex_array.length; k++) {
+      let curr_town = hex_array[k];
+      console.log("Now parsing " + curr_town);
+      let all = await database.find({town: curr_town}).toArray();
+      console.log(all);
+      let townstr = "";
+      if (all.length > 0) {
+        console.log("Detected facilities in town " + curr_town);
+        for (let j = 0; j < all.length; j++) {
+          let fac = all[j];
+          townstr = townstr + "\"" + fac["nickname"] + "\" - " + storage.getProdString(fac, 10) + " - " + fac["contact"] + " - " + fac["id"] + "\n";
+        }
+        embed.addFields({name: curr_town, value: townstr});
       }
-      embed.addFields({name: town.name, value: townstr});
+      
     }
-    
+    return embed;
+  } else {
+    return null;
   }
-  return embed;
+
+  
 }
 
 module.exports = {
@@ -57,7 +56,7 @@ module.exports = {
     )
   },
   async execute(interaction) {
-    if (allfacs.global_count == 0) {
+    if (storage.global_count == 0) {
       interaction.reply("No facilities have been registered!");
       return;
     } else {
@@ -70,10 +69,10 @@ module.exports = {
         .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
         embed_array.push(headerEmbed);
 
-        for (let i = 0; i < allfacs.hexes.length; i++) {
-          let hex = allfacs.hexes[i];
-          if (hex.fac_count > 0) {
-            embed_array.push(getHexEmbed(hex));
+        for (let i = 0; i < storage.newhexes1.length; i++) {
+          let embed = await getHexEmbed(storage.newhexes1[i]);
+          if (embed) {
+            embed_array.push(embed);
           }
         }
         interaction.followUp({content: "", embeds: embed_array});

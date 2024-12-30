@@ -11,6 +11,29 @@ const {
   REST,
   Routes,
 } = require("discord.js");
+const { MongoClient } = require("mongodb");
+const uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
+
+const mongo_client = new MongoClient(uri);
+
+/*async function run() {
+  try {
+    let database = mongo_client.db("sample_mflix");
+    let movies = database.collection("movies");
+
+    let query = {title: "Back to the Future"};
+    let movie = await movies.findOne(query);
+
+    console.log(movie);
+
+
+  } finally {
+    await mongo_client.close();
+  }
+}
+
+run().catch(console.dir);*/
+
 // import Foxhole from 'foxhole-client';
 const fs = require("node:fs");
 const path = require("node:path");

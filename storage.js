@@ -3,6 +3,31 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Modal
   ActionRow
 
 } = require('discord.js');
+const { MongoClient } = require("mongodb");
+const uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
+
+const mongo_client = new MongoClient(uri);
+const database = mongo_client.db("facilities").collection("facilities");
+let global_id = 0;
+let global_count = 0;
+
+(async function () {
+  console.log("Storage initializing...");
+  let counter = await database.findOne({counter: "counter"});
+  if (!counter) {
+    counter = {
+      counter: "counter",
+      global_id: 0,
+      count: 0,
+      _id: null,
+    }
+
+    await database.insertOne(counter);
+  }
+  global_id = counter.global_id;
+  global_count = counter.count;
+  console.log("Storage finished initializing asynchronous data!");
+})();
 
 const facs_name_map = [
   "Linn of Mercy",
@@ -26,6 +51,55 @@ function get_name_index(str) {
 
 var hexes1 = [];
 // var hexes2 = [];
+let newhexes1 = [
+  ["Linn of Mercy", 
+    "The Long Whine",
+    "Rotdust",
+    "Lathair",
+    "Outwich Ranch",
+    "Fort Duncan",
+    "The Prairie Bazaar",
+    "The Last Grove",
+    "The Crimson Gardens",
+    "The First Coin",
+    "Hardline",
+    "Ulster Falls"],
+
+    ["Deadlands", 
+    "Callahan's Gate",
+    "Iron's End",
+    "The Spine",
+    "Liberation Point",
+    "Abandoned Ward",
+    "Callahan's Boot",
+    "The Salt March",
+    "The Salt Farms",
+    "The Pits",
+    "Brine Glen",
+    "Sun's Hollow"],
+
+    ["Marban Hollow", 
+    "Sanctum",
+    "Lockheed",
+    "The Spitrocks",
+    "Maiden's Veil",
+    "Oster Wall",
+    "Mox",
+    "Checkpoint Bua"],
+
+    ["Farranac Coast", 
+    "The Jade Cove",
+    "Terra",
+    "The Bone Haft",
+    "Mara",
+    "The Pleading Wharf",
+    "Transient Valley",
+    "Scarp of Ambrose",
+    "Huskhollow",
+    "Macha's Keening",
+    "Victa",
+    "Scythe"],
+];
 var hexes1array = new Map()
   .set("Linn of Mercy", [
     "The Long Whine",
@@ -92,7 +166,7 @@ class Facility {
   id;
   primary;
   secondary;
-
+  password;
 
   productionIterator = class { //anonymous class containing methods to parse and iterate
     //overkill...? probably, lol
@@ -103,10 +177,23 @@ class Facility {
       if (quantity) {
         this.quantity_table = quantity;
       } else {
-        this.quantity_table = {};
+        this.quantity_table = [];
         for (let ele in table) {
-          quantity[ele] = [0, Date.now()];
+          this.quantity_table.push([table[ele], 0, Math.floor(Date.now()/1000)]);
         }
+      }
+    }
+
+    add(item) {
+      this.table.push(item);
+      this.quantity_table.push([item, 0, Math.floor(Date.now()/1000)]);
+    }
+
+    set(arr) {
+      this.table = arr;
+      this.quantity_table = [];
+      for (let ele in this.table) {
+        this.quantity_table.push([this.table[ele], 0, Math.floor(Date.now()/1000)]);
       }
     }
 
@@ -129,6 +216,7 @@ class Facility {
   }
 
   constructor(args, id) {
+
     this.hex = args[0];
     this.town = args[1];
     this.letter = args[2];
@@ -164,8 +252,12 @@ class Facility {
     } else {
       embed.addFields({name: "Regiment", value: "N/A", inline: true});
     }
+    embed.addFields({name: "ID", value: this.id.toString(), inline: true});
+    if (this.password) {
+      embed.setDescription("This registration is password protected :lock:")
+    }
     embed.addFields(
-      { name: '\u200B', value: '\u200B' },
+      // { name: '\u200B', value: '\u200B' },
       { name: "Hex", value: this.hex, inline: true},
       { name: "Town", value: this.town, inline: true },
       { name: "Grid", value: this.letter + this.number.toString(), inline: true },
@@ -181,7 +273,7 @@ class Facility {
     }
     embeds.push(embed);
     embed.addFields(
-      {name: '\u200B', value: '\u200B' },
+      // {name: '\u200B', value: '\u200B' },
       {name: "Primary Production", value: this.primary.getString(), inline: true},
       {name: "Secondary Production", value: this.secondary.getString(), inline: true}
     );
@@ -190,11 +282,20 @@ class Facility {
       let primary_quantity = this.primary.quantity_table;
       let primaryEmbed = new EmbedBuilder()
       .setTitle("Primary Production Quantities")
-      for (let item in primary_quantity) {
-        primaryEmbed.addFields({name: item, value: primary_quantity[0] + " - *last updated <t:" + primary_quantity[1] + ":R>*"});
+      for (let i = 0; i < primary_quantity.length; i++) {
+        primaryEmbed.addFields({name: primary_quantity[i][0], value: primary_quantity[i][1] + " items - *last updated by the owner <t:" + primary_quantity[i][2] + ":R>*"});
       }
-
       embeds.push(primaryEmbed);
+    }
+
+    if (this.secondary.table.length > 0) {
+      let secondary_quantity = this.secondary.quantity_table;
+      let secondaryEmbed = new EmbedBuilder()
+      .setTitle("Secondary Production Quantities")
+      for (let i = 0; i < secondary_quantity.length; i++) {
+        secondaryEmbed.addFields({name: secondary_quantity[i][0], value: secondary_quantity[i][1] + " items - *last updated <t:" + secondary_quantity[i][2] + ":R>*"});
+      }
+      embeds.push(secondaryEmbed); 
     }
 
     
@@ -219,18 +320,120 @@ class Facility {
   }
 }
 
+function getProdString(fac, num) {
+  if (fac[num]) {
+    return fac[num];
+  } else {
+    return "Not listed";
+  }
+}
+
+async function add(args) {
+  global_id++;
+  global_count++;
+
+  await database.updateOne({counter: "counter"}, {$set: {
+    id: global_id,
+    count: global_count,
+  }});
+  let fac = {
+    _id: null,
+    hex: args[0],
+    town: args[1],
+    letter: args[2],
+    number: args[3],
+    regiment: args[4],
+    contact: args[5],
+    nickname: args[6],
+    field: args[7],
+    relative: args[8],
+    primary: [],
+    primary_quantity: [],
+    secondary: [],
+    secondary_quantity: [],
+    password: null,
+    id: args[9] ?? global_id,
+  }
+  console.log("Adding a facility to mongodb... " + global_id);
+  let insert = await database.insertOne(fac);
+  if (insert.acknowledged) {
+    console.log("Successfully added, " + insert.insertedId);
+    return fac;
+  } else {
+    console.log("Failed to insert");
+    return null;
+  }
+}
+
+function toEmbed(fac) {
+  let embeds = [];
+  let embed = new EmbedBuilder()
+  .addFields({name: "Lead Contact", value: fac.contact, inline: true})
+  if (fac.regiment) {
+    embed.addFields({name: "Regiment", value: fac.regiment, inline: true});
+  } else {
+    embed.addFields({name: "Regiment", value: "N/A", inline: true});
+  }
+  embed.addFields({name: "ID", value: fac.id.toString(), inline: true});
+  if (fac.password) {
+    embed.setDescription("This registration is password protected :lock:")
+  }
+  embed.addFields(
+    // { name: '\u200B', value: '\u200B' },
+    { name: "Hex", value: fac.hex, inline: true},
+    { name: "Town", value: fac.town, inline: true },
+    { name: "Grid", value: fac.letter + fac.number.toString(), inline: true },
+  )
+  if (fac.field) {
+    embed.setTitle(fac.town + " " + fac.field + ": \"" + fac.nickname + "\"")
+  } else {
+    if (fac.relative == "Zero") {
+      embed.setTitle(fac.town + ": \"" + fac.nickname + "\"")
+    } else {
+      embed.setTitle(fac.relative + " of " + fac.town + ": \"" + fac.nickname + "\"")
+    }
+  }
+  embeds.push(embed);
+  embed.addFields(
+    // {name: '\u200B', value: '\u200B' },
+    {name: "Primary Production", value: getProdString(fac, 10), inline: true},
+    {name: "Secondary Production", value: getProdString(fac, 11), inline: true}
+  );
+
+  if (fac.primary.length > 0) {
+    let primaryEmbed = new EmbedBuilder()
+    .setTitle("Primary Production Quantities")
+    for (let i = 0; i < fac.primary_quantity.length; i++) {
+      primaryEmbed.addFields({name: fac.primary_quantity[i][0], value: fac.primary_quantity[i][1] + " items - *last updated by the owner <t:" + fac.primary_quantity[i][2] + ":R>*"});
+    }
+    embeds.push(primaryEmbed);
+  }
+
+  if (fac.secondary.length > 0) {
+    let secondaryEmbed = new EmbedBuilder()
+    .setTitle("Secondary Production Quantities")
+    for (let i = 0; i < fac.secondary_quantity.length; i++) {
+      secondaryEmbed.addFields({name: fac.secondary_quantity[i][0], value: fac.secondary_quantity[i][1] + " items - *last updated <t:" + secondary_quantity[i][2] + ":R>*"});
+    }
+    embeds.push(secondaryEmbed); 
+  }
+
+  
+  return embeds;
+}
+
 class AllContainer {
   global_count;
-  global_id;
+  old_global_id;
   hexes;
   facility_id_tracker;
   hexes_str_array;
+
 
   constructor() {
     this.hexes = [];
     this.facility_id_tracker = [];
     this.global_count = 0;
-    this.global_id = 0;
     this.hexes_str_array = [];
   }
   
@@ -251,17 +454,34 @@ class AllContainer {
     return null; 
   }
 
-  add(args) {
-    this.global_id++;
-    let facility = new Facility(args, this.global_id);
-    let hex = this.get_hex(args[0]);
-    hex.add(facility);
-    this.facility_id_tracker[this.global_id] = facility;
-    this.global_count++;
-
-    console.log("Added facility, id " + this.global_id + " with the following data: " + args);
-    return facility;
-  }
+  /*add(args) {
+    let fac = {
+      _id: null,
+      hex: args[0],
+      town: args[1],
+      letter: args[2],
+      number: args[3],
+      regiment: args[4],
+      contact: args[5],
+      nickname: args[6],
+      field: args[7],
+      relative: args[8],
+      primary: [],
+      primary_quantity: [],
+      secondary: [],
+      secondary_quantity: [],
+      password: null,
+      id: args[9] ?? global_id++,
+    }
+    console.log("Adding a facility to mongodb...");
+    let insert = database.insertOne(fac);
+    if (insert.acknowledged) {
+      console.log("Successfully added, " + insert.insertedId);
+    } else {
+      console.log("Failed to insert");
+    }
+    return fac;
+  }*/
 
   hexes_tostring() {
     for (let ele in this.hexes) {
@@ -319,6 +539,7 @@ class Town {
 }
 
 let allfacs = new AllContainer();
+
 
 hexes1array.forEach((value, key, map) => 
   {hexes1.push(new StringSelectMenuOptionBuilder()
@@ -522,8 +743,12 @@ function coord(fac) {
 
 module.exports = {
   allfacs: allfacs,
+  add: add,
+  toEmbed: toEmbed,
+  getProdString: getProdString,
   hexes1: hexes1,
   hexes1array: hexes1array,
+  newhexes1: newhexes1,
   hexes2: hexes2,
   testhex: testhex,
   number_map: number_map,

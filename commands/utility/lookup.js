@@ -8,20 +8,37 @@ const data = new SlashCommandBuilder()
         .setName("id")
         .setDescription("Enter the id of a facility to lookup")
         .setRequired(true)
-
     );
+
+const {MongoClient} = require("mongodb");
+const uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
+
+const mongo_client = new MongoClient(uri);
+const database = mongo_client.db("facilities").collection("facilities");
 
 module.exports = {
     data: data,
     async execute(interaction) {
+        await interaction.deferReply();
         let id = interaction.options.getInteger('id');
-        let fac = allfacs.facility_id_tracker[id];
+        let fac = await database.findOne({id: id});
+
+        if (fac) {
+            console.log(fac);
+            let embed = storage.toEmbed(fac);
+            await interaction.editReply({embeds: embed});
+        } else {
+            await interaction.editReply("No facility with id " + id + " could be found!");
+        }
+
+
+        /*let fac = allfacs.facility_id_tracker[id];
         if (fac) {
             let embed = fac.toEmbed();
             await interaction.reply({ content: "", embeds: embed });
         } else {
             await interaction.reply("No facility with id " + id + " could be found!");
-        }
+        }*/
 
     }
 }

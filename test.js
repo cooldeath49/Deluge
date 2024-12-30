@@ -1,4 +1,4 @@
-fetch("https://war-service-live.foxholeservices.com/api/worldconquest/maps/DeadLandsHex/dynamic/public")
+/*fetch("https://war-service-live.foxholeservices.com/api/worldconquest/maps/DeadLandsHex/dynamic/public")
     .then(response => {
     if (!response.ok) {
       throw new Error('Network response was not ok');
@@ -10,4 +10,4 @@ fetch("https://war-service-live.foxholeservices.com/api/worldconquest/maps/DeadL
   })
   .catch(error => {
     console.error('There has been a problem with your fetch operation:', error);
-  });
+  });*/

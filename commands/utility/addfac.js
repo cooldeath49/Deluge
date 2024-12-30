@@ -8,13 +8,12 @@ const allfacs = storage.allfacs;
 const hexes1 = storage.hexes1;
 const hexes1array = storage.hexes1array;
 const hexes2 = storage.hexes2;
-const Facility = storage.Facility;
-const paste_regex = /([a-zA-Z ]+)-([A-Q])([1-9]|1[0-5])k([1-9])/
+
+
 let chosen_hex;
 let chosen_town;
 let grid_letter;
 let grid_number;
-let keypad
 let relative;
 let field;
 const data = new SlashCommandBuilder()
@@ -38,7 +37,7 @@ let skip = new ButtonBuilder()
 let select = new StringSelectMenuBuilder();
 
 async function handleInteraction(interaction) {
-
+  // interaction.deferReply();
   //Button related
   if (interaction.customId == "cancel") {
     await interaction.update({
@@ -47,12 +46,17 @@ async function handleInteraction(interaction) {
       embeds: [],
     });
   } else if (interaction.customId == "test facility") {
-    allfacs.add(["Marban Hollow", "Lockheed", "A", 4, "ISO", "cooldeath49", "nickname", null, "East"]);
-    await interaction.update({
-      content: 'Added test facility',
-      components: [],
-      embeds: [],
-    });
+    let response = storage.add(["Marban Hollow", "Lockheed", "A", 4, "ISO", "cooldeath49", "nickname", null, "East"]);
+    if (!response) {
+      await interaction.update("Failed to add facility!");
+    } else {
+      await interaction.update({
+        content: 'Added test facility',
+        components: [],
+        embeds: [],
+      });
+    }
+    
   } else if (interaction.customId == "add") {
     select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
@@ -175,25 +179,6 @@ async function handleInteraction(interaction) {
     //Selection made for number
   } else if (interaction.customId == "grid number select") {
     grid_number = interaction.values[0];
-    select.spliceOptions(0, 25)
-      .addOptions(storage.keypad_map.map((number) => new StringSelectMenuOptionBuilder()
-        .setLabel(number.toString())
-        .setDescription(number.toString())
-        .setValue(number.toString())
-      )
-      )
-      .setCustomId('keypad select')
-      .setPlaceholder('Select the keypad of your location within ' + grid_letter + grid_number.toString() + ':')
-      ;
-
-    row = new ActionRowBuilder().addComponents(select);
-    buttonrow = new ActionRowBuilder().addComponents(cancel);
-    await interaction.update({
-      content: 'Select keypad number:',
-      components: [row, buttonrow],
-    });
-  } else if (interaction.customId == "keypad select") {
-    keypad = interaction.values[0];
     select.spliceOptions(0, 25)
       .addOptions(new StringSelectMenuOptionBuilder()
         .setLabel("Scrap Field")
@@ -330,12 +315,18 @@ async function handleInteraction(interaction) {
       contact = submitted.fields.getTextInputValue("contact");
       nickname = submitted.fields.getTextInputValue("nickname");
 
-      let embed2 = new EmbedBuilder()
+      let fac = await storage.add([chosen_hex, chosen_town, grid_letter, grid_number, regiment, contact, nickname, field, relative]);
+
+      if (fac) {
+        let embed2 = new EmbedBuilder()
         .setTitle("Successfully added a facility!")
-
-      let fac = allfacs.add([chosen_hex, chosen_town, grid_letter, grid_number, regiment, contact, nickname, field, relative]);
-
-      await interaction.editReply({ content: "", embeds: [embed2].concat(fac.toEmbed()), components: [] })
+        .setDescription("Use /editfac to add a password and edit remaining facility details")
+      await interaction.editReply({ content: "", embeds: [embed2].concat(storage.toEmbed(fac)), components: [] })
+      } else {
+        
+        await interaction.editReply("Failed to add facility, internal error");
+      }
+      
 
       // const modalcollector = response.createMessageComponentCollector({ componentType: ComponentType.TextInput, time: 3_600_000 });
       // modalcollector.on('collect', async i2 => {
