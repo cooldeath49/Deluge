@@ -24,6 +24,8 @@ try {
   GUILDID = process.env.GUILDID;
 }
 
+console.log("Variables are the following: \nTOKEN: " + TOKEN + "\nURI: " + uri + "\nAPPID: " + APPID + "\nGUILDID: " + GUILDID);
+
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");
 let global_id = 0;
