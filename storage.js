@@ -4,7 +4,25 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Modal
 
 } = require('discord.js');
 const { MongoClient } = require("mongodb");
-const uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
+
+let config;
+let TOKEN;
+let uri;
+let APPID;
+let GUILDID;
+try {
+  config = require("./config.json");
+  TOKEN = config.TOKEN;
+  APPID = config.APPID;
+  GUILDID = config.GUILDID;
+  uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
+} catch(error) {
+  console.log("Detected running in Railway, using environment variables...");
+  TOKEN = process.env.TOKEN;
+  uri = process.env.MONGO_URL;
+  APPID = process.env.APPID;
+  GUILDID = process.env.GUILDID;
+}
 
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");
@@ -152,53 +170,6 @@ var hexes1array = new Map()
   ],)
 
 let artilleryItems = ["120mm", "150mm", "300mm"];
-
-class productionIterator { //anonymous class containing methods to parse and iterate
-  //overkill...? probably, lol
-  table;
-  quantity_table;
-  constructor(table, quantity) {
-    this.table = table;
-    if (quantity) {
-      this.quantity_table = quantity;
-    } else {
-      this.quantity_table = [];
-      for (let ele in table) {
-        this.quantity_table.push([table[ele], 0, Math.floor(Date.now()/1000)]);
-      }
-    }
-  }
-
-  add(item) {
-    this.table.push(item);
-    this.quantity_table.push([item, 0, Math.floor(Date.now()/1000)]);
-  }
-
-  set(arr) {
-    this.table = arr;
-    this.quantity_table = [];
-    for (let ele in this.table) {
-      this.quantity_table.push([this.table[ele], 0, Math.floor(Date.now()/1000)]);
-    }
-  }
-
-  getString() {
-    let str = "";
-    if (this.table.length > 0) {
-      for (let i = 0; i< this.table.length; i++) {
-        if (i == this.table.length - 1) {
-          str = str + this.table[i];
-        } else {
-          str = str + this.table[i] + ", ";
-        }
-      }
-      return str;
-    } else {
-      return "None listed";
-    }
-   
-  }
-}
 
 class Facility {
   hex;
@@ -397,6 +368,10 @@ function getTooltip(fac, state) {
     }
   }
   
+}
+
+async function handleMongoFunctions(func) {
+  return await func();
 }
 
 async function add(args) {
@@ -815,6 +790,10 @@ function coord(fac) {
 module.exports = {
   allfacs: allfacs,
   add: add,
+  TOKEN: TOKEN,
+  APPID: APPID,
+  GUILDID: GUILDID,
+  uri: uri,
   toEmbed: toEmbed,
   getTooltip: getTooltip,
   hexes1: hexes1,
@@ -830,4 +809,5 @@ module.exports = {
   get_name_index: get_name_index,
   keypad_map: keypad_map,
   artilleryItems: artilleryItems,
+  handleMongoFunctions: handleMongoFunctions,
 }

@@ -3,21 +3,11 @@ const {
   Routes,
   CommandInteraction,
 } = require("discord.js");
-let config;
-let TOKEN;
-let APPID;
-let GUILDID;
-try {
-  config = require("./config.json");
-  TOKEN = config.TOKEN;
-  APPID = config.APPID;
-  GUILDID = config.GUILDID;
-} catch(error) {
-  console.log("Detected running in Railway, using environment variables...");
-  TOKEN = process.env.TOKEN;
-  APPID = process.env.APPID;
-  GUILDID = process.env.GUILDID;
-}
+const {
+  TOKEN,
+  APPID,
+  GUILDID
+} = require("./storage.js");
 const rest = new REST().setToken(TOKEN);
 const fs = require("node:fs");
 const path = require("node:path");

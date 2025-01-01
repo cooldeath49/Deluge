@@ -11,10 +11,6 @@ const {
   REST,
   Routes,
 } = require("discord.js");
-const { MongoClient } = require("mongodb");
-const uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
-
-const mongo_client = new MongoClient(uri);
 
 /*async function run() {
   try {
@@ -37,16 +33,9 @@ run().catch(console.dir);*/
 // import Foxhole from 'foxhole-client';
 const fs = require("node:fs");
 const path = require("node:path");
-
-let config;
-let TOKEN;
-try {
-  config = require("./config.json");
-  TOKEN = config.TOKEN;
-} catch(error) {
-  console.log("Detected running in Railway, using environment variables...");
-  TOKEN = process.env.TOKEN;
-}
+const {
+  TOKEN
+} = require("./storage.js");
 
 const client = new Client({
   intents: [

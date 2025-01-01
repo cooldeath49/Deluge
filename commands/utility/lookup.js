@@ -11,7 +11,7 @@ const data = new SlashCommandBuilder()
     );
 
 const {MongoClient} = require("mongodb");
-const uri = "mongodb+srv://arthuritisyou:luoyuan1@deluge.nxwj2.mongodb.net/?retryWrites=true&w=majority&appName=Deluge";
+const uri = storage.uri;
 
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");
