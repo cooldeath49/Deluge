@@ -5,9 +5,8 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   TextInputStyle,
   ActionRow } = require('discord.js');
 const storage = require("../../storage.js");
-const allfacs = storage.allfacs;
 const {MongoClient} = require("mongodb");
-const uri = storage.uri;
+const {uri} = require("../../sensitive.js");
 const mongo_client = new MongoClient(uri);
 
 const database = mongo_client.db("facilities").collection("facilities");
@@ -27,6 +26,7 @@ async function handleInteraction(interaction, fac) {
     || interaction.customId == "skip secondary"
     || interaction.customId == "new pw modal"
     || interaction.customId == "remove pw yes"
+    || interaction.customId == "del no"
   ) {
     if (interaction.customId == "confirm edit fac" && fac.password) {
       let pwattempt = new TextInputBuilder()
@@ -95,12 +95,18 @@ async function handleInteraction(interaction, fac) {
     let cancel = new ButtonBuilder()
       .setCustomId("exit")
       .setLabel("Exit")
-      .setStyle(ButtonStyle.Danger)
+      .setStyle(ButtonStyle.Danger);
+
+    let del = new ButtonBuilder()
+    .setCustomId("delete")
+    .setLabel("Delete Facility")
+    .setStyle(ButtonStyle.Danger)
+
     let row = new ActionRowBuilder()
       .addComponents(contact_button, location_button, production_button, pw_button);
 
     let exitrow = new ActionRowBuilder()
-      .addComponents(cancel);
+      .addComponents(cancel, del);
 
     let header_embed = new EmbedBuilder()
     if (interaction.customId == "remove pw yes") {
@@ -195,11 +201,16 @@ async function handleInteraction(interaction, fac) {
         .setCustomId("exit")
         .setLabel("Exit")
         .setStyle(ButtonStyle.Danger)
+
+      let del = new ButtonBuilder()
+        .setCustomId("delete")
+        .setLabel("Delete Facility")
+        .setStyle(ButtonStyle.Danger)
       let row = new ActionRowBuilder()
         .addComponents(contact_button, location_button, production_button, pw_button);
 
       let exitrow = new ActionRowBuilder()
-        .addComponents(cancel);
+        .addComponents(cancel, del);
 
       let header_embed = new EmbedBuilder()
         .setTitle("Successfully added password!")
@@ -210,7 +221,26 @@ async function handleInteraction(interaction, fac) {
         }
       
     }
-  } else if (interaction.customId == "remove pw") {
+  } else if (interaction.customId == "delete") {
+    await interaction.deferUpdate();
+    let yes_button = new ButtonBuilder()
+      .setCustomId("del yes")
+      .setLabel("Yes")
+      .setStyle(ButtonStyle.Success);
+
+    let no_button = new ButtonBuilder()
+      .setCustomId("del no")
+      .setLabel("No")
+      .setStyle(ButtonStyle.Danger);
+
+    let footer = new EmbedBuilder()
+      .setTitle("Are you sure you want to delete this facility registration? This can't be undone.")
+      if (interaction.replied || interaction.deferred) {
+        await interaction.editReply({ components: [new ActionRowBuilder().addComponents(yes_button, no_button)], embeds: storage.toEmbed(fac).concat(footer) });
+      } else {
+        await interaction.update({ components: [new ActionRowBuilder().addComponents(yes_button, no_button)], embeds: storage.toEmbed(fac).concat(footer) });
+      }
+    } else if (interaction.customId == "remove pw") {
     await interaction.deferUpdate();
     let yes_button = new ButtonBuilder()
       .setCustomId("remove pw yes")
@@ -229,7 +259,25 @@ async function handleInteraction(interaction, fac) {
       } else {
         await interaction.update({ components: [new ActionRowBuilder().addComponents(yes_button, no_button)], embeds: storage.toEmbed(fac).concat(footer) });
       }
-    
+  } else if (interaction.customId == "del yes") {
+    await interaction.deferUpdate();
+    let result = await database.deleteOne({id: fac.id});
+    if (result.acknowledged && result.deletedCount == 1) {
+      let footer = new EmbedBuilder()
+        .setTitle("Facility registration deleted!")
+  
+      await interaction.editReply({ components: [], embeds: [footer]});
+    } else {
+      let footer = new EmbedBuilder()
+        .setTitle("Delete command failed, please re-run the command.");
+        if (!result.acknowledged) {
+          footer.setDescription("*Debugging only: deleteOne failed to acknowledge*");
+        } else {
+          footer.setDescription("*Debugging only: deleteOne failed to delete a document*");
+        }
+        await interaction.editReply({ components: [], embeds: [footer]});
+    }
+      
   } else if (interaction.customId == "remove pw no") {
     await interaction.deferUpdate();
     if (interaction.customId == "remove pw yes") {

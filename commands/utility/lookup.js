@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const storage = require("../../storage.js");
-const allfacs = storage.allfacs;
+const {uri} = require("../../sensitive.js");
 const data = new SlashCommandBuilder()
     .setName("lookup")
     .setDescription("Lookup specific details about a facility given an id")
@@ -11,7 +11,6 @@ const data = new SlashCommandBuilder()
     );
 
 const {MongoClient} = require("mongodb");
-const uri = storage.uri;
 
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");

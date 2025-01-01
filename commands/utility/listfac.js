@@ -1,12 +1,11 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed } = require("discord.js");
 const storage = require("../../storage.js");
 const {MongoClient} = require("mongodb");
-const uri = storage.uri;
+const {uri} = require("../../sensitive.js");
 
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");
 
-const allfacs = storage.allfacs;
 const data = new SlashCommandBuilder()
   .setName("listfac")
   .setDescription("List facilities in a particular hex or all facilities")
@@ -31,8 +30,8 @@ async function getHexEmbed(search_array, facilities) {
   //j key: Town name, points to town string
   for (let i = 0; i < facilities.length; i++) {
     let fac = facilities[i];
-    for (let hex_array of search_array) {
-      if (fac.hex == hex_array[0]) {
+    for (let ind in search_array) {
+      if (fac.hex == search_array[ind][0]) {
         if (hexes_strs[fac.hex]) { //already an entry for this hex
           if (hexes_strs[fac.hex][fac.town]) { //town has an entry
             hexes_strs[fac.hex][fac.town] = hexes_strs[fac.hex][fac.town] + 
@@ -67,7 +66,7 @@ async function getHexEmbed(search_array, facilities) {
 module.exports = {
   data: data,
   async autocomplete(interaction) {
-    let choices = allfacs.hexes_str_array; //TODO: replace this with a static map
+    let choices = storage.facs_name_map; //TODO: replace this with a static map
     let filtered = choices.filter(choice => choice.startsWith(interaction.options.getFocused()));
     await interaction.respond(
       filtered.map(choice => ({ name: choice, value: choice })),
@@ -76,7 +75,7 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply();
     if (await database.countDocuments() - 1 == 0) {
-      interaction.reply("No facilities have been registered!");
+      interaction.followUp("No facilities have been registered!");
       return;
     } else {
       let facilities = await database.find().toArray();
@@ -88,16 +87,9 @@ module.exports = {
         .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
         embed_array.push(headerEmbed);
 
+        let embeds1 = await getHexEmbed(storage.hexes1, facilities);
 
-        // for (let i = 0; i < storage.newhexes1.length; i++) {
-        //   let embed = await getHexEmbed(storage.newhexes1[i]);
-        //   if (embed.length > 0) {
-        //     embed_array.push(embed);
-        //   }
-        // }
-        let embeds = await getHexEmbed(storage.newhexes1, facilities);
-
-        interaction.followUp({content: "", embeds: embed_array.concat(embeds)});
+        interaction.followUp({content: "", embeds: embed_array.concat(embeds1)});
 
       } else {
         if (storage.facs_name_map.indexOf(target) > 0) {

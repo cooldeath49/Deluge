@@ -3,23 +3,11 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Modal
   ActionRow
 
 } = require('discord.js');
-const storage = require('../../storage.js');
-const allfacs = storage.allfacs;
-const hexes1 = storage.hexes1;
-const hexes1array = storage.hexes1array;
-const hexes2 = storage.hexes2;
+const {hexes1, hexes2, add, toEmbed, letter_map, number_map} = require('../../storage.js');
 
-
-let chosen_hex;
-let chosen_town;
-let grid_letter;
-let grid_number;
-let relative;
-let field;
 const data = new SlashCommandBuilder()
   .setName("addfac")
   .setDescription("Register a facility with the bot")
-
 
 let other_page = new ButtonBuilder()
   .setCustomId("switch page 1")
@@ -36,7 +24,7 @@ let skip = new ButtonBuilder()
 
 let select = new StringSelectMenuBuilder();
 
-async function handleInteraction(interaction) {
+async function handleInteraction(interaction, fac) {
   // interaction.deferReply();
   //Button related
   if (interaction.customId == "cancel") {
@@ -46,7 +34,17 @@ async function handleInteraction(interaction) {
       embeds: [],
     });
   } else if (interaction.customId == "test facility") {
-    let response = storage.add(["Marban Hollow", "Lockheed", "A", 4, "ISO", "cooldeath49", "nickname", null, "East"]);
+    let response = add({
+      hex: "Marban Hollow", 
+      town: "Lockheed", 
+      letter: "A", 
+      number: 4, 
+      regiment: "ISO", 
+      contact: "cooldeath49", 
+      nickname: "nickname", 
+      field: null, 
+      relative: "East"
+    });
     if (!response) {
       await interaction.update("Failed to add facility!");
     } else {
@@ -61,7 +59,12 @@ async function handleInteraction(interaction) {
     select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
       .setPlaceholder('Select hex of your facility:')
-      .addOptions(hexes1);
+      .addOptions(hexes1.map((chunk) => new StringSelectMenuOptionBuilder()
+        .setLabel(chunk[0])
+        .setDescription(chunk[0])
+        .setValue(chunk[0])
+      ));
+
     let row = new ActionRowBuilder().addComponents(select);
     let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
 
@@ -92,10 +95,10 @@ async function handleInteraction(interaction) {
 
   } else if (interaction.customId == "switch page 2") { //Switch to page 1
     select.spliceOptions(0, 19)
-      .addOptions(hexes1.map((hex) => new StringSelectMenuOptionBuilder()
-        .setLabel(hex.label)
-        .setDescription(hex.description)
-        .setValue(hex.value)
+      .addOptions(hexes1.map((chunk) => new StringSelectMenuOptionBuilder()
+        .setLabel(chunk[0])
+        .setDescription(chunk[0])
+        .setValue(chunk[0])
       )
       );
     other_page.setCustomId("switch page 1");
@@ -115,10 +118,11 @@ async function handleInteraction(interaction) {
 
     //Selection made for hex, string select
   } else if (interaction.customId == "hex select") {
-    chosen_hex = interaction.values[0];
-    console.log(interaction.values);
+    fac.hex = interaction.values[0];
+    let chunk = hexes1.find((chunk) => chunk[0] == fac.hex);
+    chunk.shift();
     select.spliceOptions(0, 25)
-      .addOptions(hexes1array.get(chosen_hex).map((town) => new StringSelectMenuOptionBuilder()
+      .addOptions(chunk.map((town) => new StringSelectMenuOptionBuilder()
         .setLabel(town)
         .setDescription(town)
         .setValue(town)
@@ -136,9 +140,9 @@ async function handleInteraction(interaction) {
 
     //Selection made for town
   } else if (interaction.customId == "town select") {
-    chosen_town = interaction.values[0];
+    fac.town = interaction.values[0];
     select.spliceOptions(0, 25)
-      .addOptions(storage.letter_map.map((letter) => new StringSelectMenuOptionBuilder()
+      .addOptions(letter_map.map((letter) => new StringSelectMenuOptionBuilder()
         .setLabel(letter.toString())
         .setDescription(letter.toString())
         .setValue(letter.toString())
@@ -157,9 +161,9 @@ async function handleInteraction(interaction) {
 
     //Selection made for letter
   } else if (interaction.customId == "grid letter select") {
-    grid_letter = interaction.values[0];
+    fac.letter = interaction.values[0];
     select.spliceOptions(0, 25)
-      .addOptions(storage.number_map.map((number) => new StringSelectMenuOptionBuilder()
+      .addOptions(number_map.map((number) => new StringSelectMenuOptionBuilder()
         .setLabel(number.toString())
         .setDescription(number.toString())
         .setValue(number.toString())
@@ -178,7 +182,7 @@ async function handleInteraction(interaction) {
 
     //Selection made for number
   } else if (interaction.customId == "grid number select") {
-    grid_number = interaction.values[0];
+    fac.number = interaction.values[0];
     select.spliceOptions(0, 25)
       .addOptions(new StringSelectMenuOptionBuilder()
         .setLabel("Scrap Field")
@@ -215,40 +219,40 @@ async function handleInteraction(interaction) {
     if (interaction.values[0] == "N/A") {
       select.spliceOptions(0, 25)
         .addOptions(new StringSelectMenuOptionBuilder()
-          .setLabel("North of " + chosen_town)
-          .setDescription("North of " + chosen_town)
+          .setLabel("North of " + fac.town)
+          .setDescription("North of " + fac.town)
           .setValue("North"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("Northeast of " + chosen_town)
-            .setDescription("Northeast of " + chosen_town)
+            .setLabel("Northeast of " + fac.town)
+            .setDescription("Northeast of " + fac.town)
             .setValue("Northeast"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("East of " + chosen_town)
-            .setDescription("East of " + chosen_town)
+            .setLabel("East of " + fac.town)
+            .setDescription("East of " + fac.town)
             .setValue("East"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("Southeast of " + chosen_town)
-            .setDescription("Southeast of " + chosen_town)
+            .setLabel("Southeast of " + fac.town)
+            .setDescription("Southeast of " + fac.town)
             .setValue("Southeast"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("South of " + chosen_town)
-            .setDescription("South of " + chosen_town)
+            .setLabel("South of " + fac.town)
+            .setDescription("South of " + fac.town)
             .setValue("South"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("Southwest of " + chosen_town)
-            .setDescription("Southwest of " + chosen_town)
+            .setLabel("Southwest of " + fac.town)
+            .setDescription("Southwest of " + fac.town)
             .setValue("Southwest"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("West of " + chosen_town)
-            .setDescription("West of " + chosen_town)
+            .setLabel("West of " + fac.town)
+            .setDescription("West of " + fac.town)
             .setValue("West"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("Northwest of " + chosen_town)
-            .setDescription("Northwest of " + chosen_town)
+            .setLabel("Northwest of " + fac.town)
+            .setDescription("Northwest of " + fac.town)
             .setValue("Northwest"),
           new StringSelectMenuOptionBuilder()
-            .setLabel("Right next to " + chosen_town)
-            .setDescription("Within ~40m of " + chosen_town + " TH/Relic")
+            .setLabel("Right next to " + fac.town)
+            .setDescription("Within ~40m of " + fac.town + " TH/Relic")
             .setValue("Zero"),
         )
         .setCustomId("relative select")
@@ -262,11 +266,10 @@ async function handleInteraction(interaction) {
 
     } else {
       if (interaction.customId == "field select") {
-        field = interaction.values[0];
+        fac.field = interaction.values[0];
       } else {
-        relative = interaction.values[0];
+        fac.relative = interaction.values[0];
       }
-      let regiment, contact, nickname;
       const modal = new ModalBuilder()
         .setCustomId("regiment modal")
         .setTitle("Regiment")
@@ -311,17 +314,17 @@ async function handleInteraction(interaction) {
         return null
       })
 
-      regiment = submitted.fields.getTextInputValue("regiment");
-      contact = submitted.fields.getTextInputValue("contact");
-      nickname = submitted.fields.getTextInputValue("nickname");
+      fac.regiment = submitted.fields.getTextInputValue("regiment");
+      fac.contact = submitted.fields.getTextInputValue("contact");
+      fac.nickname = submitted.fields.getTextInputValue("nickname");
 
-      let fac = await storage.add([chosen_hex, chosen_town, grid_letter, grid_number, regiment, contact, nickname, field, relative]);
+      let newfac = await add(fac);
 
-      if (fac) {
+      if (newfac) {
         let embed2 = new EmbedBuilder()
         .setTitle("Successfully added a facility!")
         .setDescription("Use /editfac to add a password and edit remaining facility details")
-      await interaction.editReply({ content: "", embeds: [embed2].concat(storage.toEmbed(fac)), components: [] })
+      await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
       } else {
         
         await interaction.editReply("Failed to add facility, internal error");
@@ -355,7 +358,19 @@ module.exports = {
 
     let row = new ActionRowBuilder().addComponents(addbutton, cancel, testbutton);
 
-    let embed = new EmbedBuilder().setTitle("Would you like to add a facility?")
+    let embed = new EmbedBuilder().setTitle("Would you like to add a facility?");
+    // [chosen_hex, fac.town, grid_letter, grid_number, regiment, contact, nickname, field, relative]);
+    let fac = {
+      hex: null,
+      town: null,
+      letter: null,
+      number: null,
+      regiment: null,
+      contact: null,
+      nickname: null,
+      field: null,
+      relative: null,
+    }
 
     let response = await interaction.reply({
       content: "",
@@ -368,7 +383,7 @@ module.exports = {
       time: 3_600_000,
       filter: i => i.user.id === interaction.user.id,
     }).on('collect', async i2 => {
-      handleInteraction(i2);
+      handleInteraction(i2, fac);
     });
     
     response.createMessageComponentCollector({ 
@@ -376,7 +391,7 @@ module.exports = {
       time: 3_600_000, 
       filter: i => i.user.id === interaction.user.id, 
     }).on('collect', async i2 => {
-      handleInteraction(i2);
+      handleInteraction(i2, fac);
     });
 
 

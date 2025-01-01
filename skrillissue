@@ -1,6 +1,5 @@
 // const { Events, StringSelectMenuBuilder, ButtonBuilder, ActionRowBuilder, StringSelectMenuOptionBuilder, ButtonStyle } = require('discord.js');
 // const storage = require('../storage.js');
-// const allfacs = storage.allfacs;
 // const hexes1 = storage.hexes1;
 // const hexes2 = storage.hexes2;
 

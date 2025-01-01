@@ -6,8 +6,7 @@ const {
 const {
   TOKEN,
   APPID,
-  GUILDID
-} = require("./storage.js");
+} = require("./sensitive.js");
 const rest = new REST().setToken(TOKEN);
 const fs = require("node:fs");
 const path = require("node:path");

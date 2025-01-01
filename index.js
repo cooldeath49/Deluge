@@ -35,7 +35,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const {
   TOKEN
-} = require("./storage.js");
+} = require("./sensitive.js");
 
 const client = new Client({
   intents: [
