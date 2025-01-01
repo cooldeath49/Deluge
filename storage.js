@@ -100,6 +100,7 @@ let newhexes1 = [
     "Victa",
     "Scythe"],
 ];
+
 var hexes1array = new Map()
   .set("Linn of Mercy", [
     "The Long Whine",
@@ -152,6 +153,52 @@ var hexes1array = new Map()
 
 let artilleryItems = ["120mm", "150mm", "300mm"];
 
+class productionIterator { //anonymous class containing methods to parse and iterate
+  //overkill...? probably, lol
+  table;
+  quantity_table;
+  constructor(table, quantity) {
+    this.table = table;
+    if (quantity) {
+      this.quantity_table = quantity;
+    } else {
+      this.quantity_table = [];
+      for (let ele in table) {
+        this.quantity_table.push([table[ele], 0, Math.floor(Date.now()/1000)]);
+      }
+    }
+  }
+
+  add(item) {
+    this.table.push(item);
+    this.quantity_table.push([item, 0, Math.floor(Date.now()/1000)]);
+  }
+
+  set(arr) {
+    this.table = arr;
+    this.quantity_table = [];
+    for (let ele in this.table) {
+      this.quantity_table.push([this.table[ele], 0, Math.floor(Date.now()/1000)]);
+    }
+  }
+
+  getString() {
+    let str = "";
+    if (this.table.length > 0) {
+      for (let i = 0; i< this.table.length; i++) {
+        if (i == this.table.length - 1) {
+          str = str + this.table[i];
+        } else {
+          str = str + this.table[i] + ", ";
+        }
+      }
+      return str;
+    } else {
+      return "None listed";
+    }
+   
+  }
+}
 
 class Facility {
   hex;
@@ -278,17 +325,16 @@ class Facility {
       {name: "Secondary Production", value: this.secondary.getString(), inline: true}
     );
 
-    if (this.primary.table.length > 0) {
-      let primary_quantity = this.primary.quantity_table;
+    if (this.primary.length > 0) {
       let primaryEmbed = new EmbedBuilder()
       .setTitle("Primary Production Quantities")
-      for (let i = 0; i < primary_quantity.length; i++) {
-        primaryEmbed.addFields({name: primary_quantity[i][0], value: primary_quantity[i][1] + " items - *last updated by the owner <t:" + primary_quantity[i][2] + ":R>*"});
+      for (let i = 0; i < primary.length; i++) {
+        primaryEmbed.addFields({name: primary[i][0], value: primary[i][1] + " items - *last updated by the owner <t:" + primary[i][2] + ":R>*"});
       }
       embeds.push(primaryEmbed);
     }
 
-    if (this.secondary.table.length > 0) {
+    if (this.secondary.length > 0) {
       let secondary_quantity = this.secondary.quantity_table;
       let secondaryEmbed = new EmbedBuilder()
       .setTitle("Secondary Production Quantities")
@@ -320,12 +366,37 @@ class Facility {
   }
 }
 
-function getProdString(fac, num) {
-  if (fac[num]) {
-    return fac[num];
+function getTooltip(fac, state) {
+  if (state == "primary") {
+    if (fac.primary.length > 0) {
+      let str = "";
+      for (ind in fac.primary) {
+        if (ind == fac.primary.length - 1) {
+          str = str + fac.primary[ind][0];
+        } else {
+          str = str + fac.primary[ind][0] + ", ";
+        }
+      }
+      return str;
+    } else {
+      return "Not listed";
+    }
   } else {
-    return "Not listed";
+    if (fac.secondary.length > 0) {
+      let str = "";
+      for (ind in fac.secondary) {
+        if (ind == fac.secondary.length - 1) {
+          str = str + fac.secondary[ind][0];
+        } else {
+          str = str + fac.secondary[ind][0] + ", ";
+        }
+      }
+      return str;
+    } else {
+      return "Not listed";
+    }
   }
+  
 }
 
 async function add(args) {
@@ -333,7 +404,7 @@ async function add(args) {
   global_count++;
 
   await database.updateOne({counter: "counter"}, {$set: {
-    id: global_id,
+    global_id: global_id,
     count: global_count,
   }});
   let fac = {
@@ -348,9 +419,9 @@ async function add(args) {
     field: args[7],
     relative: args[8],
     primary: [],
-    primary_quantity: [],
+    // primary_quantity: [],
     secondary: [],
-    secondary_quantity: [],
+    // secondary_quantity: [],
     password: null,
     id: args[9] ?? global_id,
   }
@@ -396,15 +467,15 @@ function toEmbed(fac) {
   embeds.push(embed);
   embed.addFields(
     // {name: '\u200B', value: '\u200B' },
-    {name: "Primary Production", value: getProdString(fac, 10), inline: true},
-    {name: "Secondary Production", value: getProdString(fac, 11), inline: true}
+    {name: "Primary Production", value: getTooltip(fac, "primary"), inline: true},
+    {name: "Secondary Production", value: getTooltip(fac, "secondary"), inline: true}
   );
 
   if (fac.primary.length > 0) {
     let primaryEmbed = new EmbedBuilder()
     .setTitle("Primary Production Quantities")
-    for (let i = 0; i < fac.primary_quantity.length; i++) {
-      primaryEmbed.addFields({name: fac.primary_quantity[i][0], value: fac.primary_quantity[i][1] + " items - *last updated by the owner <t:" + fac.primary_quantity[i][2] + ":R>*"});
+    for (let i = 0; i < fac.primary.length; i++) {
+      primaryEmbed.addFields({name: fac.primary[i][0], value: fac.primary[i][1] + " items - *last updated by the owner <t:" + fac.primary[i][2] + ":R>*"});
     }
     embeds.push(primaryEmbed);
   }
@@ -412,8 +483,8 @@ function toEmbed(fac) {
   if (fac.secondary.length > 0) {
     let secondaryEmbed = new EmbedBuilder()
     .setTitle("Secondary Production Quantities")
-    for (let i = 0; i < fac.secondary_quantity.length; i++) {
-      secondaryEmbed.addFields({name: fac.secondary_quantity[i][0], value: fac.secondary_quantity[i][1] + " items - *last updated <t:" + secondary_quantity[i][2] + ":R>*"});
+    for (let i = 0; i < fac.secondary.length; i++) {
+      secondaryEmbed.addFields({name: fac.secondary[i][0], value: fac.secondary[i][1] + " items - *last updated by the owner <t:" + fac.secondary[i][2] + ":R>*"});
     }
     embeds.push(secondaryEmbed); 
   }
@@ -745,7 +816,7 @@ module.exports = {
   allfacs: allfacs,
   add: add,
   toEmbed: toEmbed,
-  getProdString: getProdString,
+  getTooltip: getTooltip,
   hexes1: hexes1,
   hexes1array: hexes1array,
   newhexes1: newhexes1,
