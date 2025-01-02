@@ -3,7 +3,7 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Modal
   ActionRow
 
 } = require('discord.js');
-const {hexes1, hexes2, add, toEmbed, letter_map, number_map} = require('../../storage.js');
+const {hexes1, hexes2, add, toEmbed, letter_map, number_map, hexes1only} = require('../../storage.js');
 
 const data = new SlashCommandBuilder()
   .setName("addfac")
@@ -59,10 +59,10 @@ async function handleInteraction(interaction, fac) {
     select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
       .setPlaceholder('Select hex of your facility:')
-      .addOptions(hexes1.map((chunk) => new StringSelectMenuOptionBuilder()
-        .setLabel(chunk[0])
-        .setDescription(chunk[0])
-        .setValue(chunk[0])
+      .addOptions(hexes1only.map((hex) => new StringSelectMenuOptionBuilder()
+        .setLabel(hex)
+        .setDescription(hex)
+        .setValue(hex)
       ));
 
     let row = new ActionRowBuilder().addComponents(select);
@@ -95,10 +95,10 @@ async function handleInteraction(interaction, fac) {
 
   } else if (interaction.customId == "switch page 2") { //Switch to page 1
     select.spliceOptions(0, 19)
-      .addOptions(hexes1.map((chunk) => new StringSelectMenuOptionBuilder()
-        .setLabel(chunk[0])
-        .setDescription(chunk[0])
-        .setValue(chunk[0])
+      .addOptions(hexes1only.map(hex => new StringSelectMenuOptionBuilder()
+        .setLabel(hex)
+        .setDescription(hex)
+        .setValue(hex)
       )
       );
     other_page.setCustomId("switch page 1");

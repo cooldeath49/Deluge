@@ -25,18 +25,6 @@ let global_id = 0;
   global_id = counter.global_id;
   console.log("Storage finished initializing asynchronous data!");
 })();
-
-const facs_name_map = [
-  "Linn of Mercy",
-  "Deadlands",
-  "Marban Hollow",
-  "Farranac Coast"
-]
-
-function get_name_index(str) {
-  return facs_name_map.indexOf(str);
-}
-
 /*
 0: The Linn of Mercy
 1: The Deadlands
@@ -46,7 +34,7 @@ function get_name_index(str) {
 
 //Given a set of parameters, adds a facility to the list and returns its object
 // var hexes2 = [];
-let hexes1 = [
+const hexes1 = [
   ["Linn of Mercy", 
     "The Long Whine",
     "Rotdust",
@@ -94,9 +82,124 @@ let hexes1 = [
     "Macha's Keening",
     "Victa",
     "Scythe"],
+
+    ["Speaking Woods",
+      "Tine",
+      "The Filament",
+      "Stem",
+      "Hush",
+      "Inari Base",
+      "Wound",
+      "Fort Blather",
+      "Sotto Bank"
+    ],
+
+    ["Basin Sionnach",
+      "Cuttail Station",
+      "Stoic",
+      "Lamplight",
+      "Basinhome",
+      "The Den",
+      "Sess",
+    ],
+
+    ["Howl County",
+      "Great Warden Dam",
+      "Fort Red",
+      "Sickleshire",
+      "Little Lamb",
+      "Fort Rider",
+      "Teller Farm",
+      "Hungry Wolf",
+      "Slipgate Outpost"
+    ],
+
+    ["Reaching Trail",
+      "Brodytown",
+      "Limestone Holdfast",
+      "Dwyerstown",
+      "Elksford",
+      "Nightchurch",
+      "Reprieve",
+      "Harpy",
+      "Fort MacConaill",
+      "Mousetrap",
+      "The Ark",
+      "Ice Ranch"
+    ]
+
 ];
+
+const hexes1only = hexes1.map((element) => element[0]);
+
+const hexesgraph = { //TODO finish this graph oh god oh god oh god oh god oh god oh god
+  "Farranac Coast": ["Stonecradle", ]
+}
+
 let artilleryItems = ["120mm", "150mm", "300mm"];
 
+function degToRad(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
+function radToDeg(rad) {
+  return rad / (Math.PI / 180);
+}
+
+//magnitude between two coordinates, assumes keypad-transformed coordinates, returns an object with mag and direction field
+//@param first: pasted location
+//@param second: facility location
+function directions(first, second) {
+  let x = second.x - first.x;
+  let y = second.y - first.y;
+
+  let mag = Math.ceil( (Math.sqrt(x*x + y*y) * 125)/10) * 10;
+  
+  let deg = radToDeg(Math.atan(Math.abs(y)/Math.abs(x)));
+  let direction;
+  if (x > 0) { //East
+    if (y < 0) { //North
+      if (deg < 30) {
+        direction = "East";
+      } else if (deg < 60) {
+        direction = "Northeast";
+      } else {
+        direction = "North";
+      }
+    } else { //South
+      if (deg < 30) {
+        direction = "East";
+      } else if (deg < 60) {
+        direction = "Southeast";
+      } else {
+        direction = "South";
+      }
+    }
+  } else {
+    if (y < 0) { //North
+      if (deg < 30) {
+        direction = "West";
+      } else if (deg < 60) {
+        direction = "Northwest";
+      } else {
+        direction = "North";
+      }
+    } else { //South
+      if (deg < 30) {
+        direction = "West";
+      } else if (deg < 60) {
+        direction = "Southwest";
+      } else {
+        direction = "South";
+      }
+    }
+  }
+
+  return {
+    mag: mag,
+    direction: direction
+  }
+}
 
 function getTooltip(fac, state) {
   if (state == "primary") {
@@ -213,10 +316,10 @@ function toEmbed(fac) {
 
 
 const letter_map = [
-  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
 ]
 const number_map = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 ]
 const keypad_map = [
   1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -396,11 +499,12 @@ module.exports = {
   toEmbed: toEmbed,
   getTooltip: getTooltip,
   hexes1: hexes1,
+  hexes1only: hexes1only,
   hexes2: hexes2,
   number_map: number_map,
   letter_map: letter_map,
-  facs_name_map: facs_name_map,
-  get_name_index: get_name_index,
   keypad_map: keypad_map,
   artilleryItems: artilleryItems,
+  directions: directions,
 }
+

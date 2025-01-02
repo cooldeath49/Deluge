@@ -66,7 +66,7 @@ async function getHexEmbed(search_array, facilities) {
 module.exports = {
   data: data,
   async autocomplete(interaction) {
-    let choices = storage.facs_name_map; //TODO: replace this with a static map
+    let choices = storage.hexes1only; //TODO: replace this with a static map
     let filtered = choices.filter(choice => choice.startsWith(interaction.options.getFocused()));
     await interaction.respond(
       filtered.map(choice => ({ name: choice, value: choice })),
@@ -92,7 +92,7 @@ module.exports = {
         interaction.followUp({content: "", embeds: embed_array.concat(embeds1)});
 
       } else {
-        if (storage.facs_name_map.indexOf(target) > 0) {
+        if (storage.hexes1only.indexOf(target) >= 0) {
 
           let embeds = await getHexEmbed([[target]], facilities);
           if (embeds.length > 0) {
