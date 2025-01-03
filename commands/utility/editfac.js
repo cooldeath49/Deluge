@@ -68,6 +68,7 @@ async function handleInteraction(interaction, fac) {
     // await interaction.deferUpdate();
     if (interaction.customId == "select secondary") {
       let values = interaction.values;
+      fac.secondary = [];
       for (let val of values) {
         fac.secondary.push([val, 0, Math.floor(Date.now()/1000)]);
       }
@@ -404,6 +405,7 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "select primary" || interaction.customId == "skip primary" || interaction.customId == "clear secondary") {
     if (interaction.customId == "select primary") {
       let values = interaction.values;
+      fac.primary = [];
       for (let val of values) {
         fac.primary.push([val, 0, Math.floor(Date.now()/1000)]);
       }

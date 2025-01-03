@@ -76,7 +76,7 @@ module.exports = {
                 if (total_found < must_find) {
                     total_found++;
                     embed.addFields( {
-                        name: entry[0].mag + "m " + entry[0].direction + ", in " + entry[1].town,
+                        name: entry[0].mag + "m " + entry[0].direction + ", in " + entry[1].town + "(" + entry[1].letter + entry[1].number.toString() +")",
                         value: "\"" + entry[1].nickname + "\" - " + 
                                     storage.getTooltip(entry[1], "primary") + " - " + entry[1].contact + " - " + entry[1].id + "\n",
                     });

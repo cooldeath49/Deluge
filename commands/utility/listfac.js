@@ -31,6 +31,7 @@ async function getHexEmbed(search_array, facilities) {
   for (let i = 0; i < facilities.length; i++) {
     let fac = facilities[i];
     for (let ind in search_array) {
+      console.log(fac.hex);
       if (fac.hex == search_array[ind][0]) {
         if (hexes_strs[fac.hex]) { //already an entry for this hex
           if (hexes_strs[fac.hex][fac.town]) { //town has an entry
