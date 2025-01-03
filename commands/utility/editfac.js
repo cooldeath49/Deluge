@@ -466,7 +466,7 @@ module.exports = {
       let embed2 = new EmbedBuilder()
         .setTitle("Is this the facility you want to edit?");
 
-      let response = await interaction.editReply({ content: "", components: [row], embeds: embed.concat([embed2]) });
+      let response = await interaction.followUp({ content: "", components: [row], embeds: embed.concat([embed2]) });
 
       response.createMessageComponentCollector({
         componentType: ComponentType.Button,
