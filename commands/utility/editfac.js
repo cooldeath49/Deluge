@@ -121,7 +121,7 @@ async function handleInteraction(interaction, fac) {
       await interaction.update({ components: [row, exitrow], embeds: storage.toEmbed(fac).concat([header_embed]) });
     }
   } else if (interaction.customId == "reject edit fac") {
-    interaction.update("Interaction cancelled!");
+    interaction.update({content: "Interaction cancelled!", embeds: []});
    
   } else if (interaction.customId == "change pw init") { //jesus christ this whole thing is cancer
     if (fac.password) {
