@@ -119,7 +119,7 @@ async function handleInteraction(interaction, fac) {
     //Selection made for hex, string select
   } else if (interaction.customId == "hex select") {
     fac.hex = interaction.values[0];
-    let chunk = hexes1.find((chunk) => chunk[0] == fac.hex);
+    let chunk = JSON.parse(JSON.stringify(hexes1.find((chunk) => chunk[0] == fac.hex)));
     chunk.shift();
     select.spliceOptions(0, 25)
       .addOptions(chunk.map((town) => new StringSelectMenuOptionBuilder()
