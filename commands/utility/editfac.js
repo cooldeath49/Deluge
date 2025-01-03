@@ -120,7 +120,9 @@ async function handleInteraction(interaction, fac) {
     } else {
       await interaction.update({ components: [row, exitrow], embeds: storage.toEmbed(fac).concat([header_embed]) });
     }
-
+  } else if (interaction.customId == "reject edit fac") {
+    interaction.update("Interaction cancelled!");
+   
   } else if (interaction.customId == "change pw init") { //jesus christ this whole thing is cancer
     if (fac.password) {
       await interaction.deferUpdate();
@@ -445,7 +447,7 @@ async function handleInteraction(interaction, fac) {
 module.exports = {
   data: data,
   async execute(interaction) {
-    interaction.deferReply();
+    await interaction.deferReply();
     let id = interaction.options.getInteger('id');
     let fac = await database.findOne({id: id});
     if (fac) { //facility found
