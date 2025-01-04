@@ -1,9 +1,9 @@
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder,
   StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType,
-  ActionRow
+  Events,
 
 } = require('discord.js');
-const {hexes1, hexes2, add, toEmbed, letter_map, number_map, hexes1only} = require('../../storage.js');
+const {client, hexes1, hexes2, add, toEmbed, letter_map, number_map, hexes1only} = require('../../storage.js');
 
 const data = new SlashCommandBuilder()
   .setName("addfac")
@@ -17,12 +17,6 @@ let cancel = new ButtonBuilder()
   .setCustomId("cancel")
   .setLabel("Cancel")
   .setStyle(ButtonStyle.Danger);
-let skip = new ButtonBuilder()
-  .setCustomId("skip")
-  .setLabel("Skip")
-  .setStyle(ButtonStyle.Secondary);
-
-let select = new StringSelectMenuBuilder();
 
 async function handleInteraction(interaction, fac) {
   // interaction.deferReply();
@@ -55,8 +49,8 @@ async function handleInteraction(interaction, fac) {
       });
     }
     
-  } else if (interaction.customId == "add") {
-    select = new StringSelectMenuBuilder()
+  } else if (interaction.customId == "add" || interaction.customId == "switch page 1") {
+    let select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
       .setPlaceholder('Select hex of your facility:')
       .addOptions(hexes1only.map((hex) => new StringSelectMenuOptionBuilder()
@@ -65,18 +59,22 @@ async function handleInteraction(interaction, fac) {
         .setValue(hex)
       ));
 
-    let row = new ActionRowBuilder().addComponents(select);
-    let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+      
+    other_page.setCustomId("switch page 1");
 
-    const response = await interaction.update({
-      content: 'Choose your facility hex (page 1/2):',
+    let row = new ActionRowBuilder().addComponents(select);
+    // let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+    let buttonrow = new ActionRowBuilder().addComponents(cancel);
+
+    await interaction.update({
+      content: 'Choose your facility hex:',
       components: [row, buttonrow],
       embeds: [],
     });
 
     //Paste coordinates
   } else if (interaction.customId == "switch page 1") { //switch to the second page
-    select.spliceOptions(0, 19)
+    let select = new StringSelectMenuBuilder()
       .addOptions(hexes2.map((hex) => new StringSelectMenuOptionBuilder()
         .setLabel(hex.label)
         .setDescription(hex.description)
@@ -86,7 +84,8 @@ async function handleInteraction(interaction, fac) {
     other_page.setCustomId("switch page 2");
 
     row = new ActionRowBuilder().addComponents(select);
-    buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+    // buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+    let buttonrow = new ActionRowBuilder().addComponents(cancel);
 
     await interaction.update({
       content: 'Choose your facility hex (page 2/2):',
@@ -94,7 +93,7 @@ async function handleInteraction(interaction, fac) {
     });
 
   } else if (interaction.customId == "switch page 2") { //Switch to page 1
-    select.spliceOptions(0, 19)
+    let select = new StringSelectMenuBuilder()
       .addOptions(hexes1only.map(hex => new StringSelectMenuOptionBuilder()
         .setLabel(hex)
         .setDescription(hex)
@@ -121,7 +120,7 @@ async function handleInteraction(interaction, fac) {
     fac.hex = interaction.values[0];
     let chunk = JSON.parse(JSON.stringify(hexes1.find((chunk) => chunk[0] == fac.hex)));
     chunk.shift();
-    select.spliceOptions(0, 25)
+    let select = new StringSelectMenuBuilder()
       .addOptions(chunk.map((town) => new StringSelectMenuOptionBuilder()
         .setLabel(town)
         .setDescription(town)
@@ -141,7 +140,7 @@ async function handleInteraction(interaction, fac) {
     //Selection made for town
   } else if (interaction.customId == "town select") {
     fac.town = interaction.values[0];
-    select.spliceOptions(0, 25)
+    let select = new StringSelectMenuBuilder()
       .addOptions(letter_map.map((letter) => new StringSelectMenuOptionBuilder()
         .setLabel(letter.toString())
         .setDescription(letter.toString())
@@ -162,7 +161,7 @@ async function handleInteraction(interaction, fac) {
     //Selection made for letter
   } else if (interaction.customId == "grid letter select") {
     fac.letter = interaction.values[0];
-    select.spliceOptions(0, 25)
+    let select = new StringSelectMenuBuilder()
       .addOptions(number_map.map((number) => new StringSelectMenuOptionBuilder()
         .setLabel(number.toString())
         .setDescription(number.toString())
@@ -183,7 +182,7 @@ async function handleInteraction(interaction, fac) {
     //Selection made for number
   } else if (interaction.customId == "grid number select") {
     fac.number = interaction.values[0];
-    select.spliceOptions(0, 25)
+    let select = new StringSelectMenuBuilder()
       .addOptions(new StringSelectMenuOptionBuilder()
         .setLabel("Scrap Field")
         .setDescription("Scrap Field")
@@ -217,7 +216,7 @@ async function handleInteraction(interaction, fac) {
     //Final step in adding a facility
   } else if (interaction.customId == "field select" || interaction.customId == "relative select") {
     if (interaction.values[0] == "N/A") {
-      select.spliceOptions(0, 25)
+      let select = new StringSelectMenuBuilder()
         .addOptions(new StringSelectMenuOptionBuilder()
           .setLabel("North of " + fac.town)
           .setDescription("North of " + fac.town)
@@ -304,31 +303,28 @@ async function handleInteraction(interaction, fac) {
 
       await interaction.showModal(modal);
 
-
-      let submitted = await interaction.awaitModalSubmit({
-        time: 60000,
-        filter: i => i.user.id === interaction.user.id,
-      }).catch(error => {
-        // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
-        console.error(error)
-        return null
+      client.once(Events.InteractionCreate, async submitted => {
+        if (!submitted.isModalSubmit() || submitted.customId != "regiment modal") return;
+          fac.regiment = submitted.fields.getTextInputValue("regiment");
+          fac.contact = submitted.fields.getTextInputValue("contact");
+          fac.nickname = submitted.fields.getTextInputValue("nickname");
+    
+          let newfac = await add(fac);
+    
+          if (newfac) {
+            let embed2 = new EmbedBuilder()
+            .setTitle("Successfully added a facility!")
+            .setDescription("Use /editfac to add a password and edit remaining facility details")
+          await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
+          } else {
+            
+            await interaction.editReply("Failed to add facility, internal error");
+          }
       })
 
-      fac.regiment = submitted.fields.getTextInputValue("regiment");
-      fac.contact = submitted.fields.getTextInputValue("contact");
-      fac.nickname = submitted.fields.getTextInputValue("nickname");
+     
 
-      let newfac = await add(fac);
-
-      if (newfac) {
-        let embed2 = new EmbedBuilder()
-        .setTitle("Successfully added a facility!")
-        .setDescription("Use /editfac to add a password and edit remaining facility details")
-      await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
-      } else {
-        
-        await interaction.editReply("Failed to add facility, internal error");
-      }
+      
       
 
       // const modalcollector = response.createMessageComponentCollector({ componentType: ComponentType.TextInput, time: 3_600_000 });

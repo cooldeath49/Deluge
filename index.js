@@ -36,14 +36,10 @@ const path = require("node:path");
 const {
   TOKEN
 } = require("./sensitive.js");
+const {
+  client 
+} = require("./storage.js");
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
-});
 
 client.commands = new Collection();
 

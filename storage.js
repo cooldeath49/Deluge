@@ -1,7 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder,
-  StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType,
-  ActionRow
-
+const { Client, GatewayIntentBits, EmbedBuilder
 } = require('discord.js');
 const { MongoClient } = require("mongodb");
 const {uri} = require("./sensitive.js");
@@ -9,6 +6,15 @@ const {uri} = require("./sensitive.js");
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");
 let global_id = 0;
+
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+});
 
 (async function () {
   console.log("Storage initializing...");
@@ -219,6 +225,58 @@ const hexes1 = [
       "Blackcoat Way",
       "Blinding Stones",
       "Unruly"
+    ],
+    ["The Oarbreaker Isles",
+      "The Conclave",
+      "Silver",
+      "Fort Fogwood",
+      "Partisan Island",
+      "Posterus",
+      "Integrum",
+      "The Dirk",
+      "Gold",
+      "Grisly Refuge"
+    ],
+    ["King's Cage",
+      "The Manacle",
+      "Den of Knaves",
+      "Eastknife",
+      "The Bailie",
+      "Slipchain",
+      "Gibbet Fields",
+      "Southblade",
+      "Scarlethold",
+    ],
+    ["The Clahstra",
+      "The Treasury",
+      "Third Chapter",
+      "The Vault",
+      "Weephome",
+      "East Narthex",
+      "Watchful Nave",
+      "Transept",
+      "Bewailing Fort",
+    ], 
+    ["Stlican Shelf",
+      "Port of Rime",
+      "Briar",
+      "Cavilltown",
+      "Thornhold",
+      "Fort Hoarfrost",
+      "The South Wind",
+      "Vulpine Watch",
+      "The Old Mourn", 
+    ],
+    ["Godcrofts",
+      "Isawa",
+      "Ursa Base",
+      "Fleecewatch",
+      "Protos",
+      "The Axehead",
+      "Saegio",
+      "Argosa",
+      "Lipsia",
+      "Exile"
     ]
 ];
 
@@ -401,11 +459,20 @@ function toEmbed(fac) {
     }
     embeds.push(secondaryEmbed); 
   }
+  
+  if (fac.notes) {
+    embed.addFields({
+      name: "Owner's Notes", value: fac.notes
+    });
+  } else {
+    embed.addFields({
+      name: "Owner's Notes", value: "None written"
+    });
+  }
 
   
   return embeds;
 }
-
 
 const letter_map = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
@@ -598,5 +665,6 @@ module.exports = {
   keypad_map: keypad_map,
   artilleryItems: artilleryItems,
   directions: directions,
+  client: client,
 }
 

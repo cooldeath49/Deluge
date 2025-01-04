@@ -4,7 +4,7 @@ module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
         
-		if (interaction.isModalSubmit()) interaction.deferUpdate();
+		if (interaction.isModalSubmit()) await interaction.deferUpdate();
 		if (interaction.isAutocomplete()) {
 			let command = interaction.client.commands.get(interaction.commandName);
 
