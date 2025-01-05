@@ -394,7 +394,6 @@ async function add(fac) {
   fac._id = null;
   fac.primary = [];
   fac.secondary = [];
-  fac.password = null;
   fac.id = global_id;
   console.log("Adding a facility to mongodb... " + global_id);
   let insert = await database.insertOne(fac);

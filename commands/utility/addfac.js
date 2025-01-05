@@ -214,6 +214,55 @@ async function handleInteraction(interaction, fac) {
     });
 
     //Final step in adding a facility
+  } else if (interaction.customId == "yes pw" || interaction.customId == "no pw") {
+    if (interaction.customId == "yes pw") {
+      let input = new TextInputBuilder()
+      .setCustomId("new pw")
+      .setLabel("Enter a new password (4 - 8 characters):")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true)
+      .setMaxLength(8)
+      .setMinLength(4)
+
+      let modal = new ModalBuilder()
+        .setCustomId("new pw modal")
+        .setTitle("Password")
+
+      modal.addComponents(new ActionRowBuilder().addComponents(input));
+
+      await interaction.showModal(modal);
+
+      client.once(Events.InteractionCreate, async new_int => {
+            if (!new_int.isModalSubmit() || new_int.customId != "new pw modal") return;
+            let answer = new_int.fields.getTextInputValue("new pw");
+            fac.password = answer;
+
+            let newfac = await add(fac);
+      
+            if (newfac) {
+              let embed2 = new EmbedBuilder()
+              .setTitle("Successfully added a facility!")
+              .setDescription("Use /editfac to add a password and edit remaining facility details")
+            await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
+            } else {
+              
+              await interaction.editReply("Failed to add facility, internal error");
+            }
+          })
+    } else {
+      let newfac = await add(fac);
+    
+      if (newfac) {
+        let embed2 = new EmbedBuilder()
+        .setTitle("Successfully added a facility!")
+        .setDescription("Use /editfac to add a password and edit remaining facility details")
+      await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
+      } else {
+        
+        await interaction.editReply("Failed to add facility, internal error");
+      }
+    }
+    
   } else if (interaction.customId == "field select" || interaction.customId == "relative select") {
     if (interaction.values[0] == "N/A") {
       let select = new StringSelectMenuBuilder()
@@ -308,18 +357,22 @@ async function handleInteraction(interaction, fac) {
           fac.regiment = submitted.fields.getTextInputValue("regiment");
           fac.contact = submitted.fields.getTextInputValue("contact");
           fac.nickname = submitted.fields.getTextInputValue("nickname");
-    
-          let newfac = await add(fac);
-    
-          if (newfac) {
-            let embed2 = new EmbedBuilder()
-            .setTitle("Successfully added a facility!")
-            .setDescription("Use /editfac to add a password and edit remaining facility details")
-          await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
-          } else {
-            
-            await interaction.editReply("Failed to add facility, internal error");
-          }
+
+          let yes_button = new ButtonBuilder()
+          .setLabel("Yes")
+          .setCustomId("yes pw")
+          .setStyle(ButtonStyle.Success)
+
+          let no_button = new ButtonBuilder()
+          .setLabel("No")
+          .setCustomId("no pw")
+          .setStyle(ButtonStyle.Danger)
+
+          let footer = new EmbedBuilder()
+          .setTitle("Would you like to password-lock your facility?")
+          .setDescription("If a password is created, users must input the password when attempting to edit it. Highly recommended as it prevents others from editing your facility!")
+        
+          await interaction.editReply({content: "", embeds: [footer], components: [new ActionRowBuilder().addComponents(yes_button, no_button)]});
       })
 
      
@@ -366,6 +419,7 @@ module.exports = {
       nickname: null,
       field: null,
       relative: null,
+      password: null,
     }
 
     let response = await interaction.reply({

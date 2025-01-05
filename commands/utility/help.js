@@ -18,7 +18,7 @@ let embed = new EmbedBuilder()
         name: "/addfac", value: "You can register a facility using this command! The bot will prompt you for information on your facility through a series of click-buttons, option selects, and text input."
     },
     {
-        name: "/editfac (id)", value: "Edit a registered facility given its id. Use this command to edit contact info, production info, etc.\n*Note it is recommended to set a password to protect your registry from unauthorized editing, you may do so through this command!*"
+        name: "/editfac (id)", value: "Edit a registered facility given its id. Use this command to edit contact info, production info, etc."
     },
     {
         name: "/help", value: "Opens up the help display. You may enter this command at any time."
