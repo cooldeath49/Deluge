@@ -280,6 +280,152 @@ const hexes1 = [
     ]
 ];
 
+const items = {
+  "Primitive Resources": 
+  ["Scrap", 
+    "Components", 
+    "Sulfur",
+    "Damaged Components",
+    "Crude Oil",
+    "Diesel",
+    "Water",
+    "Coal", 
+    "Rare Metals"],
+
+  "Small-Arms Weaponry":
+    ["Falias Raiding Club",
+      "Booker Greyhound Model 910",
+      "White Ash Flask",
+      "Shrapnel Mortar Shell",
+      "Flare Mortar Shell",
+      "Mortar Shell",
+      "Incendiary Mortar Shell",
+      "Anti-Tank Sticky Bomb",
+      "20mm",
+      "PT-815 Smoke Grenade",
+      "228 Satterley Heavy Storm Rifle",
+  ],
+
+  "Infantry Deployables": [
+    "Crow's Foot Mine",
+    "Sandbags",
+    "Abisme AT-99 Mine",
+    "Barbed Wire",
+    "Metal Beam",
+  ],
+
+  "Large-Caliber Weaponry": [
+    "250mm",
+    "120mm",
+    "Flame Ammo",
+    "E680-S Rudder Lock",
+    "3C-High Explosive Rocket",
+    "4C-Fire Rocket",
+    "150mm",
+    "75mm",
+    "94.5mm",
+    "Model-7 \'Evie\'",
+    "Moray Torpedo",
+  ],
+  "Facility Materials": [
+    "Petrol",
+    "PCMats",
+    "Assmat II",
+    "Heavy Oil",
+    "Enriched Oil",
+    "Coke",
+    "Explosive Powder",
+    "High Explosive Powder",
+    "Concrete",
+
+    "CMats",
+    "Steel",
+    "Rare Alloys",
+
+    "Pipes",
+
+    
+    "Assmat I",
+    "Assmat III",
+    "Assmat IV",
+    "Assmat V",
+
+    "MSups",
+
+
+  ]
+}
+
+const services = {
+  "Motor Pool": [
+    "Bonewagon",
+    "TAC",
+    "HAC",
+    "Flame AC",
+    "20mm FAT",
+    "Amphibious LUV",
+    "Spitfire",
+  ],
+  "Battery Line": [
+    "Rocket HT",
+    "Wasp Nest",
+    "ATHT",
+    "Scar Twin",
+    "Rocket ST",
+  ],
+  "Field Station": [
+    "30mm ST",
+    "ACV",
+    "Harvester",
+    "HVFAT",
+    "Heavy Truck",
+    "Fuel Trailer",
+    "Large-Item Trailer",
+    
+  ],
+  "Tank Factory": [
+    "Highwayman",
+    "Ironhide",
+    "Outlaw",
+    "Chieftain",
+    "Mortar LT",
+    "Flame HTD",
+    "Starbreaker"
+  ],
+
+  "Weapons Platform": [
+    "Thornfall",
+    "Stockade",
+    "STD"
+  ],
+
+  "Naval Works": [
+    "Hull Segments",
+    "Shell Plating",
+    "Turbine Components"
+  ],
+
+  "Train Assembly": [
+    "RSC",
+    "Warsmith",
+    "Bloodtender"
+  ],
+
+  "Heavy Tank Assembly": [
+    "BT",
+    "Flame BT",
+    "SHT"
+  ],
+
+  "Vehicle Vetting": [
+  ],
+  "Drydock": [
+    "Battleship",
+    "Frigate",
+    "Submarine"
+  ],
+}
+
 const hexes1only = hexes1.map((element) => element[0]);
 
 const hexesgraph = { //TODO finish this graph oh god oh god oh god oh god oh god oh god
@@ -352,7 +498,50 @@ function directions(first, second) {
 }
 
 function getTooltip(fac, state) {
-  if (state == "primary") {
+  if (state == "imports") {
+    if (fac.imports && fac.imports.length > 0) {
+      let str = "";
+      for (ind in fac.imports) {
+        if (ind == fac.imports.length - 1) {
+          str = str + fac.imports[ind][0];
+        } else {
+          str = str + fac.imports[ind][0] + ", ";
+        }
+      }
+      return str;
+    } else {
+      return "None listed"
+    }
+  } else if (state == "exports") {
+    if (fac.exports && fac.exports.length > 0) {
+      let str = "";
+      for (ind in fac.exports) {
+        if (ind == fac.exports.length - 1) {
+          str = str + fac.exports[ind][0];
+        } else {
+          str = str + fac.exports[ind][0] + ", ";
+        }
+      }
+      return str;
+    } else {
+      return "None listed"
+    }
+  } else if (state == "services") {
+    if (fac.services && fac.services.length > 0) {
+      let str = "";
+      for (ind in fac.services) {
+        if (ind == fac.services.length - 1) {
+          str = str + fac.services[ind][0];
+        } else {
+          str = str + fac.services[ind][0] + ", ";
+        }
+      }
+      return str;
+    } else {
+      return "None listed"
+    }
+  }
+  /*if (state == "primary") {
     if (fac.primary.length > 0) {
       let str = "";
       for (ind in fac.primary) {
@@ -380,7 +569,7 @@ function getTooltip(fac, state) {
     } else {
       return "Not listed";
     }
-  }
+  }*/
   
 }
 
@@ -435,11 +624,13 @@ function toEmbed(fac) {
     }
   }
   embeds.push(embed);
+  /*
   embed.addFields(
     // {name: '\u200B', value: '\u200B' },
     {name: "Primary Production", value: getTooltip(fac, "primary"), inline: true},
-    {name: "Secondary Production", value: getTooltip(fac, "secondary"), inline: true}
+    {name: "Secondary Production", value: getTooltip(fac, "secondary"), inline: true} 
   );
+  
 
   if (fac.primary.length > 0) {
     let primaryEmbed = new EmbedBuilder()
@@ -458,6 +649,18 @@ function toEmbed(fac) {
     }
     embeds.push(secondaryEmbed); 
   }
+  */
+
+  embed.addFields({
+    name: "Imports", value: getTooltip(fac, "imports"), inline: true
+  },
+  {
+    name: "Exports", value: getTooltip(fac, "exports"), inline: true
+  },
+  {
+    name: "Vehicle Services", value: getTooltip(fac, "services"), inline: true
+  }
+  )
   
   if (fac.notes) {
     embed.addFields({
@@ -665,5 +868,7 @@ module.exports = {
   artilleryItems: artilleryItems,
   directions: directions,
   client: client,
+  items: items,
+  services: services
 }
 
