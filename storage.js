@@ -295,13 +295,13 @@ const items = {
   "Small-Arms Weaponry":
     ["Falias Raiding Club",
       "Booker Greyhound Model 910",
+      "20mm",
       "White Ash Flask",
       "Shrapnel Mortar Shell",
       "Flare Mortar Shell",
       "Mortar Shell",
       "Incendiary Mortar Shell",
       "Anti-Tank Sticky Bomb",
-      "20mm",
       "PT-815 Smoke Grenade",
       "228 Satterley Heavy Storm Rifle",
   ],
@@ -417,8 +417,8 @@ const services = {
     "SHT"
   ],
 
-  "Vehicle Vetting": [
-  ],
+  // "Vehicle Vetting": [
+  // ],
   "Drydock": [
     "Battleship",
     "Frigate",
@@ -497,49 +497,93 @@ function directions(first, second) {
   }
 }
 
-function getTooltip(fac, state) {
+function getTooltip(fac, state, arr_items) {
   if (state == "imports") {
     if (fac.imports && fac.imports.length > 0) {
-      let str = "";
-      for (ind in fac.imports) {
+      let str1 = "";
+      let str2 = "";
+      for (let ind in fac.imports) {
         if (ind == fac.imports.length - 1) {
-          str = str + fac.imports[ind][0];
+          str1 = str1 + getTooltip(fac, "details", fac.imports[ind][1]);
         } else {
-          str = str + fac.imports[ind][0] + ", ";
+          str1 = str1 + getTooltip(fac, "details", fac.imports[ind][1]) + ", ";
         }
       }
-      return str;
+
+
+      for (let ind in fac.imports) {
+        if (ind == fac.imports.length - 1) {
+          str2 = str2 + fac.imports[ind][0];
+        } else {
+          str2 = str2 + fac.imports[ind][0] + ", ";
+        }
+      }
+      return str1.length < 100 ? str1 : str2;
     } else {
       return "None listed"
     }
   } else if (state == "exports") {
     if (fac.exports && fac.exports.length > 0) {
-      let str = "";
-      for (ind in fac.exports) {
+      let str1 = "";
+      let str2 = "";
+      for (let ind in fac.exports) {
         if (ind == fac.exports.length - 1) {
-          str = str + fac.exports[ind][0];
+          str1 = str1 + getTooltip(fac, "details", fac.exports[ind][1]);
         } else {
-          str = str + fac.exports[ind][0] + ", ";
+          str1 = str1 + getTooltip(fac, "details", fac.exports[ind][1]) + ", ";
         }
       }
-      return str;
+
+
+      for (let ind in fac.exports) {
+        if (ind == fac.exports.length - 1) {
+          str2 = str2 + fac.exports[ind][0];
+        } else {
+          str2 = str2 + fac.exports[ind][0] + ", ";
+        }
+      }
+      return str1.length < 100 ? str1 : str2;
     } else {
       return "None listed"
     }
   } else if (state == "services") {
     if (fac.services && fac.services.length > 0) {
-      let str = "";
-      for (ind in fac.services) {
+      let str1 = "";
+      let str2 = "";
+      for (let ind in fac.services) {
         if (ind == fac.services.length - 1) {
-          str = str + fac.services[ind][0];
+          str1 = str1 + getTooltip(fac, "details", fac.services[ind][1]);
         } else {
-          str = str + fac.services[ind][0] + ", ";
+          str1 = str1 + getTooltip(fac, "details", fac.services[ind][1]) + ", ";
         }
       }
-      return str;
+
+      for (let ind in fac.services) {
+        if (ind == fac.services.length - 1) {
+          str2 = str2 + fac.services[ind][0];
+        } else {
+          str2 = str2 + fac.services[ind][0] + ", ";
+        }
+      }
+      return str1.length < 100 ? str1 : str2;
     } else {
       return "None listed"
     }
+  } else if (state == "details" && arr_items) {
+    let str = "";
+    if (arr_items.length > 0) {
+      for (let ind in arr_items) {
+        if (ind == arr_items.length - 1) {
+          str = str + arr_items[ind];
+        } else {
+          str = str + arr_items[ind] + ", ";
+        }
+      }
+    } else {
+      str = "None listed";
+    }
+    
+    return str;
   }
   /*if (state == "primary") {
     if (fac.primary.length > 0) {
@@ -624,32 +668,7 @@ function toEmbed(fac) {
     }
   }
   embeds.push(embed);
-  /*
-  embed.addFields(
-    // {name: '\u200B', value: '\u200B' },
-    {name: "Primary Production", value: getTooltip(fac, "primary"), inline: true},
-    {name: "Secondary Production", value: getTooltip(fac, "secondary"), inline: true} 
-  );
-  
-
-  if (fac.primary.length > 0) {
-    let primaryEmbed = new EmbedBuilder()
-    .setTitle("Primary Production Quantities")
-    for (let i = 0; i < fac.primary.length; i++) {
-      primaryEmbed.addFields({name: fac.primary[i][0], value: fac.primary[i][1] + " items - *last updated by the owner <t:" + fac.primary[i][2] + ":R>*"});
-    }
-    embeds.push(primaryEmbed);
-  }
-
-  if (fac.secondary.length > 0) {
-    let secondaryEmbed = new EmbedBuilder()
-    .setTitle("Secondary Production Quantities")
-    for (let i = 0; i < fac.secondary.length; i++) {
-      secondaryEmbed.addFields({name: fac.secondary[i][0], value: fac.secondary[i][1] + " items - *last updated by the owner <t:" + fac.secondary[i][2] + ":R>*"});
-    }
-    embeds.push(secondaryEmbed); 
-  }
-  */
+ 
 
   embed.addFields({
     name: "Imports", value: getTooltip(fac, "imports"), inline: true
@@ -661,7 +680,7 @@ function toEmbed(fac) {
     name: "Vehicle Services", value: getTooltip(fac, "services"), inline: true
   }
   )
-  
+
   if (fac.notes) {
     embed.addFields({
       name: "Owner's Notes", value: fac.notes
@@ -672,6 +691,53 @@ function toEmbed(fac) {
     });
   }
 
+  if (fac.imports.length > 0) {
+    let imports_embed = new EmbedBuilder()
+    .setTitle("Imports")
+
+    for (let slice in fac.imports) {
+      let cate = fac.imports[slice][0];
+      let cate_items = fac.imports[slice][1];
+      let value_str = getTooltip(fac, "details", cate_items);
+
+      imports_embed.addFields({
+        name: cate, value: value_str, inline: true
+      });
+    }
+    embeds.push(imports_embed);
+  }
+
+  if (fac.exports.length > 0) {
+    let exports_embed = new EmbedBuilder()
+    .setTitle("Exports")
+
+    for (let slice in fac.exports) {
+      let cate = fac.exports[slice][0];
+      let cate_items = fac.exports[slice][1];
+      let value_str = getTooltip(fac, "details", cate_items);
+
+      exports_embed.addFields({
+        name: cate, value: value_str, inline: true
+      });
+    }
+    embeds.push(exports_embed);
+  }
+
+  if (fac.services.length > 0) {
+    let services_embed = new EmbedBuilder()
+    .setTitle("Services")
+
+    for (let slice in fac.services) {
+      let cate = fac.services[slice][0];
+      let cate_items = fac.services[slice][1];
+      let value_str = getTooltip(fac, "details", cate_items);
+
+      services_embed.addFields({
+        name: cate, value: value_str, inline: true
+      });
+    }
+    embeds.push(services_embed);
+  }
   
   return embeds;
 }

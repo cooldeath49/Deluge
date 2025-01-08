@@ -35,15 +35,13 @@ async function getHexEmbed(search_array, facilities) {
         if (hexes_strs[fac.hex]) { //already an entry for this hex
           if (hexes_strs[fac.hex][fac.town]) { //town has an entry
             hexes_strs[fac.hex][fac.town] = hexes_strs[fac.hex][fac.town] + 
-            "\"" + fac.nickname + "\" - " + storage.getTooltip(fac, "primary") + " - " + fac.contact + " - " + fac.id + "\n";
+            "\"" + fac.nickname + " - " + "\" ID-" + fac.id + "\n";
           } else { //no town, initialize string
-            hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\" - " + 
-            storage.getTooltip(fac, "primary") + " - " + fac.contact + " - " + fac.id + "\n";
+            hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\" ID-" + fac.id + "\n";
           } 
         } else { //no hex entry
           hexes_strs[fac.hex] = {}; //initialize
-          hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\" - " +  //if no hex, assume no town
-            storage.getTooltip(fac, "primary") + " - " + fac.contact + " - " + fac.id + "\n";
+          hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\" ID-" + fac.id + "\n";
         }
       }
     }
@@ -53,7 +51,7 @@ async function getHexEmbed(search_array, facilities) {
     let embed = new EmbedBuilder()
     .setTitle(hex + " Facilities");
     for (let town in hexes_strs[hex]) {
-      embed.addFields({name: town, value: hexes_strs[hex][town]});
+      embed.addFields({name: town, value: hexes_strs[hex][town], inline: true});
     }
     embeds.push(embed);
   }

@@ -275,7 +275,7 @@ async function handleInteraction(interaction, fac) {
     if (newfac) {
       let embed2 = new EmbedBuilder()
       .setTitle("Successfully added a facility!")
-      .setDescription("Use /editfac to add a password and edit remaining facility details")
+      .setDescription("Use /editfac to edit remaining facility details")
     await interaction.update({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
     } else {
       
@@ -605,6 +605,7 @@ module.exports = {
       password: null,
       imports: null,
       exports: null,
+      choice: null, //internal use only
     }
 
     let response = await interaction.reply({
