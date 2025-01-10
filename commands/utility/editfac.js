@@ -4,12 +4,7 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   TextInputBuilder,
   TextInputStyle,
   Events, } = require('discord.js');
-const { client, hexes1, hexes1only, toEmbed, artilleryItems, letter_map, number_map, items, services } = require("../../storage.js");
-const { MongoClient } = require("mongodb");
-const { uri } = require("../../sensitive.js");
-const mongo_client = new MongoClient(uri);
-
-const database = mongo_client.db("facilities").collection("facilities");
+const { client, database, hexes1, hexes1only, toEmbed, artilleryItems, letter_map, number_map, items, services } = require("../../storage.js");
 
 const data = new SlashCommandBuilder()
   .setName('editfac')
@@ -168,13 +163,7 @@ async function handleInteraction(interaction, fac) {
   ) {
 
     // await interaction.deferUpdate();
-    if (interaction.customId == "select secondary") {
-      let values = interaction.values;
-      fac.secondary = [];
-      for (let val of values) {
-        fac.secondary.push([val, 0, Math.floor(Date.now() / 1000)]);
-      }
-    }
+    
     if (interaction.customId == "remove pw yes") {
       fac.password = null;
       await returnHomeMenu(interaction, fac, "Successfully removed password!");
@@ -644,80 +633,6 @@ async function handleInteraction(interaction, fac) {
     await database.replaceOne({ id: fac.id }, fac);
 
     await interaction.update({ components: [], embeds: toEmbed(fac).concat([footer]) });
-  } else if (interaction.customId == "production" || interaction.customId == "clear primary") {
-    if (interaction.customId == "clear primary") {
-      fac.primary = [];
-    }
-
-    let primary_select = new StringSelectMenuBuilder()
-      .setCustomId("select primary")
-      .setPlaceholder("Select primary production items:")
-      .addOptions(artilleryItems.map((item) => new StringSelectMenuOptionBuilder()
-        .setLabel(item)
-        .setDescription(item)
-        .setValue(item)
-      ))
-      .setMinValues(1)
-      .setMaxValues(3)
-
-    let skip = new ButtonBuilder()
-      .setCustomId("skip primary")
-      .setLabel("Skip")
-      .setStyle(ButtonStyle.Primary);
-
-    let clear = new ButtonBuilder()
-      .setCustomId("clear primary")
-      .setLabel("Clear Options")
-      .setStyle(ButtonStyle.Secondary);
-
-    let row1 = new ActionRowBuilder()
-      .addComponents(primary_select)
-
-    let row2 = new ActionRowBuilder()
-      .addComponents(clear, skip)
-
-    await interaction.update({ components: [row1, row2], embeds: toEmbed(fac) });
-  } else if (interaction.customId == "select primary" || interaction.customId == "skip primary" || interaction.customId == "clear secondary") {
-    if (interaction.customId == "select primary") {
-      let values = interaction.values;
-      fac.primary = [];
-      for (let val of values) {
-        fac.primary.push([val, 0, Math.floor(Date.now() / 1000)]);
-      }
-    }
-
-    if (interaction.customId == "clear secondary") {
-      fac.secondary = [];
-    }
-
-    let secondary_select = new StringSelectMenuBuilder()
-      .setCustomId("select secondary")
-      .setPlaceholder("Select secondary production items:")
-      .addOptions(artilleryItems.map((item) => new StringSelectMenuOptionBuilder()
-        .setLabel(item)
-        .setDescription(item)
-        .setValue(item)
-      ))
-      .setMinValues(1)
-      .setMaxValues(3)
-
-    let skip = new ButtonBuilder()
-      .setCustomId("skip secondary")
-      .setLabel("Skip")
-      .setStyle(ButtonStyle.Primary);
-
-    let clear = new ButtonBuilder()
-      .setCustomId("clear secondary")
-      .setLabel("Clear Options")
-      .setStyle(ButtonStyle.Secondary);
-
-    let row1 = new ActionRowBuilder()
-      .addComponents(secondary_select)
-
-    let row2 = new ActionRowBuilder()
-      .addComponents(clear, skip)
-
-    await interaction.update({ components: [row1, row2], embeds: toEmbed(fac) });
   } else if (interaction.customId == "imports" || interaction.customId == "exports" || interaction.customId == "services") {
     await returnProductionMenu(interaction, fac, interaction.customId, "Select your action:");
   } else if (interaction.customId == "add imports" || interaction.customId == "add exports" || interaction.customId == "add services") {
@@ -792,7 +707,7 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "select items imports" || interaction.customId == "select items exports" || interaction.customId == "select items services") {
     let choices = interaction.values;
     let lower = interaction.customId.substring(13);
-    fac[lower].find((element) => element[0] == fac.choice)[1] = choices;
+    fac[lower].find((element) => element[0] == fac.choice)[1] = choices.map((item) => [item, 0, Math.floor(Date.now()/1000)]);
 
     await returnProductionMenu(interaction, fac, lower, 
       "Successfully edited " + fac.choice + " " + lower.slice(0, -1) + " items!");

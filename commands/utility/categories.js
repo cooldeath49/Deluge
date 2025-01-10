@@ -23,10 +23,24 @@ let itemEmbed = new EmbedBuilder()
     return {name: element, value: str}
 }));
 
+let servicesEmbed = new EmbedBuilder()
+.setTitle("Vehicle Services")
+.addFields(Object.keys(services).map((element) => {
+    let str = "";
+    for (let item in services[element]) {
+        if (item == services[element].length - 1) {
+            str = str + services[element][item];
+        } else {
+            str = str + services[element][item] + ", ";
+        }
+    }
+    return {name: element, value: str}
+}));
+
 module.exports = {
     data: data,
     async execute(interaction) {
-        await interaction.reply({embeds: [embed, itemEmbed]});
+        await interaction.reply({embeds: [embed, itemEmbed, servicesEmbed]});
 
     }
 }

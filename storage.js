@@ -2,6 +2,7 @@ const { Client, GatewayIntentBits, EmbedBuilder
 } = require('discord.js');
 const { MongoClient } = require("mongodb");
 const {uri} = require("./sensitive.js");
+const Fuse = require("fuse.js");
 
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");
@@ -280,6 +281,7 @@ const hexes1 = [
     ]
 ];
 
+
 const items = {
   "Primitive Resources": 
   ["Scrap", 
@@ -426,6 +428,18 @@ const services = {
   ],
 }
 
+let all_items = [];
+  // items.array.map((slice) => all_items.concat(slice));
+for (let slice in items) {
+  all_items = all_items.concat(items[slice]);
+}
+
+const items_fuse = new Fuse(all_items, {
+    shouldSort: true,
+    includeScore: true,
+
+  })
+
 const hexes1only = hexes1.map((element) => element[0]);
 
 const hexesgraph = { //TODO finish this graph oh god oh god oh god oh god oh god oh god
@@ -498,74 +512,34 @@ function directions(first, second) {
 }
 
 function getTooltip(fac, state, arr_items) {
-  if (state == "imports") {
-    if (fac.imports && fac.imports.length > 0) {
+  if (state == "imports" || state == "exports" || state == "services") {
+    if (fac[state] && fac[state].length > 0) {
       let str1 = "";
       let str2 = "";
-      for (let ind in fac.imports) {
-        if (ind == fac.imports.length - 1) {
-          str1 = str1 + getTooltip(fac, "details", fac.imports[ind][1]);
+      //item string
+      for (let ind in fac[state]) {
+        let details = getTooltip(fac, "details", fac[state][ind][1]);
+        console.log(details);
+        if (ind == fac[state].length - 1) {
+          str1 = str1 + (details == "None listed" ? "" : details);
         } else {
-          str1 = str1 + getTooltip(fac, "details", fac.imports[ind][1]) + ", ";
+          str1 = str1 + (details == "None listed" ? "" : details + ", ");
         }
       }
 
-
-      for (let ind in fac.imports) {
-        if (ind == fac.imports.length - 1) {
-          str2 = str2 + fac.imports[ind][0];
+      if (str1 == "") {
+        str1 = "None listed";
+      }
+      
+      //Category string
+      for (let ind in fac[state]) {
+        if (ind == fac[state].length - 1) {
+          str2 = str2 + fac[state][ind][0];
         } else {
-          str2 = str2 + fac.imports[ind][0] + ", ";
+          str2 = str2 + fac[state][ind][0] + ", ";
         }
       }
-      return str1.length < 100 ? str1 : str2;
-    } else {
-      return "None listed"
-    }
-  } else if (state == "exports") {
-    if (fac.exports && fac.exports.length > 0) {
-      let str1 = "";
-      let str2 = "";
-      for (let ind in fac.exports) {
-        if (ind == fac.exports.length - 1) {
-          str1 = str1 + getTooltip(fac, "details", fac.exports[ind][1]);
-        } else {
-          str1 = str1 + getTooltip(fac, "details", fac.exports[ind][1]) + ", ";
-        }
-      }
-
-
-      for (let ind in fac.exports) {
-        if (ind == fac.exports.length - 1) {
-          str2 = str2 + fac.exports[ind][0];
-        } else {
-          str2 = str2 + fac.exports[ind][0] + ", ";
-        }
-      }
-      return str1.length < 100 ? str1 : str2;
-    } else {
-      return "None listed"
-    }
-  } else if (state == "services") {
-    if (fac.services && fac.services.length > 0) {
-      let str1 = "";
-      let str2 = "";
-      for (let ind in fac.services) {
-        if (ind == fac.services.length - 1) {
-          str1 = str1 + getTooltip(fac, "details", fac.services[ind][1]);
-        } else {
-          str1 = str1 + getTooltip(fac, "details", fac.services[ind][1]) + ", ";
-        }
-      }
-
-      for (let ind in fac.services) {
-        if (ind == fac.services.length - 1) {
-          str2 = str2 + fac.services[ind][0];
-        } else {
-          str2 = str2 + fac.services[ind][0] + ", ";
-        }
-      }
-      return str1.length < 100 ? str1 : str2;
+      return (str1.length < 100 && str1 != "None listed") ? str1 : str2;
     } else {
       return "None listed"
     }
@@ -574,9 +548,9 @@ function getTooltip(fac, state, arr_items) {
     if (arr_items.length > 0) {
       for (let ind in arr_items) {
         if (ind == arr_items.length - 1) {
-          str = str + arr_items[ind];
+          str = str + arr_items[ind][0];
         } else {
-          str = str + arr_items[ind] + ", ";
+          str = str + arr_items[ind][0] + ", ";
         }
       }
     } else {
@@ -584,36 +558,20 @@ function getTooltip(fac, state, arr_items) {
     }
     
     return str;
+  } else if (state == "time details" && arr_items) {
+    let str = "";
+    if (arr_items.length > 0) { 
+      for (let ind in arr_items) {
+        let count = arr_items[ind][1];
+        str = str + "- " + (count >= 1000 ? (Math.floor(count/100)/10).toString() + "k" : count) + " " + arr_items[ind][0] + " last updated <t:" + arr_items[ind][2] + ":R>\n"
+      }
+    } else {
+      str = "None listed";
+    }
+    
+    return str;
   }
-  /*if (state == "primary") {
-    if (fac.primary.length > 0) {
-      let str = "";
-      for (ind in fac.primary) {
-        if (ind == fac.primary.length - 1) {
-          str = str + fac.primary[ind][0];
-        } else {
-          str = str + fac.primary[ind][0] + ", ";
-        }
-      }
-      return str;
-    } else {
-      return "Not listed";
-    }
-  } else {
-    if (fac.secondary.length > 0) {
-      let str = "";
-      for (ind in fac.secondary) {
-        if (ind == fac.secondary.length - 1) {
-          str = str + fac.secondary[ind][0];
-        } else {
-          str = str + fac.secondary[ind][0] + ", ";
-        }
-      }
-      return str;
-    } else {
-      return "Not listed";
-    }
-  }*/
+  
   
 }
 
@@ -624,9 +582,6 @@ async function add(fac) {
     global_id: global_id,
   }});
   
-  fac._id = null;
-  fac.primary = [];
-  fac.secondary = [];
   fac.id = global_id;
   console.log("Adding a facility to mongodb... " + global_id);
   let insert = await database.insertOne(fac);
@@ -714,7 +669,7 @@ function toEmbed(fac) {
     for (let slice in fac.exports) {
       let cate = fac.exports[slice][0];
       let cate_items = fac.exports[slice][1];
-      let value_str = getTooltip(fac, "details", cate_items);
+      let value_str = getTooltip(fac, "time details", cate_items);
 
       exports_embed.addFields({
         name: cate, value: value_str, inline: true
@@ -934,7 +889,9 @@ module.exports = {
   artilleryItems: artilleryItems,
   directions: directions,
   client: client,
+  database: database,
   items: items,
-  services: services
+  services: services,
+  items_fuse: items_fuse
 }
 

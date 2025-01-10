@@ -37,7 +37,13 @@ async function handleInteraction(interaction, fac) {
       contact: "cooldeath49", 
       nickname: "nickname", 
       field: null, 
-      relative: "East"
+      relative: "East",
+      password: null,
+      imports: null,
+      exports: null,
+      services: null,
+      choice: null,
+      _id: null,
     });
     if (!response) {
       await interaction.update("Failed to add facility!");
@@ -605,7 +611,9 @@ module.exports = {
       password: null,
       imports: null,
       exports: null,
+      services: null,
       choice: null, //internal use only
+      _id: null,
     }
 
     let response = await interaction.reply({

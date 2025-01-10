@@ -1,10 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed } = require("discord.js");
-const storage = require("../../storage.js");
-const {MongoClient} = require("mongodb");
-const {uri} = require("../../sensitive.js");
-
-const mongo_client = new MongoClient(uri);
-const database = mongo_client.db("facilities").collection("facilities");
+const {hexes1, hexes1only, database} = require("../../storage.js");
 
 const data = new SlashCommandBuilder()
   .setName("listfac")
@@ -64,7 +59,7 @@ async function getHexEmbed(search_array, facilities) {
 module.exports = {
   data: data,
   async autocomplete(interaction) {
-    let choices = storage.hexes1only; //TODO: replace this with a static map
+    let choices = hexes1only; //TODO: replace this with a static map
     let filtered = choices.filter(choice => choice.startsWith(interaction.options.getFocused()));
     await interaction.respond(
       filtered.map(choice => ({ name: choice, value: choice })),
@@ -85,12 +80,12 @@ module.exports = {
         .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
         embed_array.push(headerEmbed);
 
-        let embeds1 = await getHexEmbed(storage.hexes1, facilities);
+        let embeds1 = await getHexEmbed(hexes1, facilities);
 
         interaction.followUp({content: "", embeds: embed_array.concat(embeds1)});
 
       } else {
-        if (storage.hexes1only.indexOf(target) >= 0) {
+        if (hexes1only.indexOf(target) >= 0) {
 
           let embeds = await getHexEmbed([[target]], facilities);
           if (embeds.length > 0) {

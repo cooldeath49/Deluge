@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const storage = require("../../storage.js");
-const {uri} = require("../../sensitive.js");
+const {toEmbed, database} = require("../../storage.js");
 const data = new SlashCommandBuilder()
     .setName("lookup")
     .setDescription("Lookup specific details about a facility given an id")
@@ -9,11 +8,6 @@ const data = new SlashCommandBuilder()
         .setDescription("Enter the id of a facility to lookup")
         .setRequired(true)
     );
-
-const {MongoClient} = require("mongodb");
-
-const mongo_client = new MongoClient(uri);
-const database = mongo_client.db("facilities").collection("facilities");
 
 module.exports = {
     data: data,
@@ -24,7 +18,7 @@ module.exports = {
 
         if (fac) {
             console.log(fac);
-            let embed = storage.toEmbed(fac);
+            let embed = toEmbed(fac);
             await interaction.editReply({embeds: embed});
         } else {
             await interaction.editReply("No facility with id " + id + " could be found!");
