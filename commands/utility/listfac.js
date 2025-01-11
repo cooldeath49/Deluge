@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Embed } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require("discord.js");
 const {hexes1, hexes1only, database} = require("../../storage.js");
 
 const data = new SlashCommandBuilder()
@@ -74,15 +74,74 @@ module.exports = {
       let facilities = await database.find().toArray();
       let target = interaction.options.getString('hex');
       if (!target) { //No target specified, load all facilities
-        let embed_array = [];
         let headerEmbed = new EmbedBuilder()
         .setTitle("All Facilities")
         .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
-        embed_array.push(headerEmbed);
 
-        let embeds1 = await getHexEmbed(hexes1, facilities);
 
-        interaction.followUp({content: "", embeds: embed_array.concat(embeds1)});
+        let embeds = await getHexEmbed(hexes1, facilities);
+
+        if (embeds.length > 4) {
+          let counter = 3;
+          let embeds_length = Math.ceil(embeds.length / 4);
+          let curr = 0;
+          let embed_array = [embeds[0], embeds[1], embeds[2], embeds[3]];
+
+          let next = new ButtonBuilder()
+          .setLabel("Next (" + (curr + 1).toString() + "/" + embeds_length + ")")
+          .setCustomId("next")
+          .setStyle(ButtonStyle.Primary);
+
+          let back = new ButtonBuilder()
+          .setLabel("Back (" + (curr + 1).toString() + "/" + embeds_length + ")")
+          .setCustomId("back")
+          .setStyle(ButtonStyle.Primary);
+
+          let response = await interaction.followUp({ content: "", components: [new ActionRowBuilder().addComponents(next)], embeds: [headerEmbed].concat(embed_array)});
+            
+          let buttoncollector = response.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+            time: 60_000,
+            filter: i => i.user.id === interaction.user.id,
+          })
+          buttoncollector.on('collect', async int => {
+            buttoncollector.resetTimer();
+            if (int.customId == "next") {
+              curr += 1;
+            } else if (int.customId == "back") {
+              curr -= 1;
+            }
+            let embed_counter = curr * 4;
+            let inc_counter = 0;
+            embed_array = [];
+            while (embed_counter < embeds.length && inc_counter < 4) {
+              embed_array.push(embeds[embed_counter]);
+              embed_counter++;
+              inc_counter++;
+            }
+
+            if (curr == embeds_length - 1) {
+              back.setLabel("Back (" + (curr + 1).toString() + "/" + embeds_length + ")");
+              await int.update({components: [new ActionRowBuilder().addComponents(back)], embeds: [headerEmbed].concat(embed_array)});
+            } else if (curr == 0) {
+              next.setLabel("Next (" + (curr + 1).toString() + "/" + embeds_length + ")");
+              await int.update({components: [new ActionRowBuilder().addComponents(next)], embeds: [headerEmbed].concat(embed_array)});
+            } else {
+              next.setLabel("Next (" + (curr + 1).toString() + "/" + embeds_length + ")");
+              back.setLabel("Back (" + (curr + 1).toString() + "/" + embeds_length + ")");
+              await int.update({components: [new ActionRowBuilder().addComponents(back, next)], embeds: [headerEmbed].concat(embed_array)});
+            }
+          });
+
+          buttoncollector.on("end", async e => {
+            interaction.followUp("Interaction closed: a response was not received within one minute!")
+          });
+    
+          
+        } else {
+          interaction.followUp({content: "", embeds: [headerEmbed].concat(embeds)});
+        }
+
 
       } else {
         if (hexes1only.indexOf(target) >= 0) {

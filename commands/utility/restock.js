@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, Component, ActionRowBuilder, Events } = require("discord.js");
-const {database, items_fuse, client} = require("../../storage.js");
+const {database, items_fuse, client, toEmbed} = require("../../storage.js");
 const data = new SlashCommandBuilder()
     .setName("restock")
     .setDescription("Conveniently restock export items in a certain facility")
@@ -17,6 +17,7 @@ const data = new SlashCommandBuilder()
         .setName("stock")
         .setDescription("Enter the new stock amount of this item")
         .setRequired(true)
+        .setMinValue(0)
     )
     .addStringOption((option) => option
         .setName("password")
@@ -54,12 +55,13 @@ module.exports = {
                             .setCustomId("no")
                             .setStyle(ButtonStyle.Danger);
 
-                            await interaction.editReply({components: [new ActionRowBuilder().addComponents(yes, no)], embeds: [embed]});
+                            await interaction.editReply({components: [new ActionRowBuilder().addComponents(yes, no)], embeds: toEmbed(fac).concat([embed])});
 
                             client.once(Events.InteractionCreate, async submitted => {
                                 if (!submitted.isButton() || (submitted.customId != "yes" && submitted.customId != "no")) return;
                                 if (submitted.customId == "yes") {
-                                    let slice = item_slice[1].find((inner) => inner[0] = fuse_item[0].item);
+                                    let slice = item_slice[1].find((inner) => inner[0] == fuse_item[0].item);
+                                    console.log(slice);
                                     slice[1] = stock; 
                                     slice[2] = Math.floor(Date.now()/1000);
                                     await database.replaceOne({ id: fac.id }, fac);
@@ -67,7 +69,7 @@ module.exports = {
                                     .setTitle("Successfully restocked " + fuse_item[0].item + "!")
                                     .setDescription("New stock: " + stock + " " + fuse_item[0].item);
 
-                                    await submitted.update({components: [], embeds: [newEmbed]});
+                                    await submitted.update({components: [], embeds: toEmbed(fac).concat([newEmbed])});
                                 }
 
                                 }

@@ -331,7 +331,7 @@ const items = {
   ],
   "Facility Materials": [
     "Petrol",
-    "PCMats",
+    "PCmats",
     "Assmat II",
     "Heavy Oil",
     "Enriched Oil",
@@ -519,7 +519,6 @@ function getTooltip(fac, state, arr_items) {
       //item string
       for (let ind in fac[state]) {
         let details = getTooltip(fac, "details", fac[state][ind][1]);
-        console.log(details);
         if (ind == fac[state].length - 1) {
           str1 = str1 + (details == "None listed" ? "" : details);
         } else {
@@ -563,7 +562,7 @@ function getTooltip(fac, state, arr_items) {
     if (arr_items.length > 0) { 
       for (let ind in arr_items) {
         let count = arr_items[ind][1];
-        str = str + "- " + (count >= 1000 ? (Math.floor(count/100)/10).toString() + "k" : count) + " " + arr_items[ind][0] + " last updated <t:" + arr_items[ind][2] + ":R>\n"
+        str = str + "- " + (count >= 1000 ? (Math.floor(count/100)/10).toString() + "k" : count) + " " + arr_items[ind][0] + ", *last updated <t:" + arr_items[ind][2] + ":R>*\n"
       }
     } else {
       str = "None listed";

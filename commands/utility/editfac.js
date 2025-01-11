@@ -6,6 +6,8 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   Events, } = require('discord.js');
 const { client, database, hexes1, hexes1only, toEmbed, artilleryItems, letter_map, number_map, items, services } = require("../../storage.js");
 
+let fac_arr = []; //stores id's of facilities being currently edited; IDs will be released once a command is finished
+
 const data = new SlashCommandBuilder()
   .setName('editfac')
   .setDescription("Edit a pre-existing facility")
@@ -89,6 +91,16 @@ async function returnProductionMenu(interaction, fac, selection, msg) {
   .setLabel("Edit " + upper + " Categories")
   .setStyle(ButtonStyle.Primary);
 
+  if (fac[selection].length <= 1) {
+    add_specific.setCustomId("add items " + selection);
+    if (fac[selection].length == 0) {
+      change.setCustomId("add cate " + selection);
+    } else {
+      fac.choice = fac[selection][0][0];
+      console.log("set fac choice");
+    }
+  }
+
   let back = new ButtonBuilder()
   .setCustomId("return to edit")
   .setLabel("Back")
@@ -141,6 +153,10 @@ async function handleInteraction(interaction, fac) {
         if (new_int.fields.getTextInputValue("pw input") != fac.password) {
           let footer = new EmbedBuilder()
             .setTitle("Bad password! Please restart the command and try again.");
+          if (fac_arr.indexOf(fac.id) >= 0) {
+            fac_arr.splice(fac_arr.indexOf(fac.id), 1);
+            console.log("removed id " + fac.id + " from fac array");
+          }
           if (interaction.replied || interaction.deferred) {
             await interaction.editReply({ components: [], embeds: toEmbed(fac).concat([footer]) });
           } else {
@@ -166,7 +182,7 @@ async function handleInteraction(interaction, fac) {
     
     if (interaction.customId == "remove pw yes") {
       fac.password = null;
-      await returnHomeMenu(interaction, fac, "Successfully removed password!");
+      await returnHomeMenu(interaction, fac, "Successfully removed password! Remember to save and exit when finished.");
     } else {
       await returnHomeMenu(interaction, fac, "Choose which fields you would like to edit:");
     }
@@ -214,7 +230,7 @@ async function handleInteraction(interaction, fac) {
       fac.contact = new_int.fields.getTextInputValue("contact");
       fac.nickname = new_int.fields.getTextInputValue("nickname");
 
-      await returnHomeMenu(interaction, fac, "Successfully changed contact info!");
+      await returnHomeMenu(interaction, fac, "Successfully changed contact info! Remember to save and exit when finished.");
     })
   } else if (interaction.customId == "notes") {
     let input = new TextInputBuilder()
@@ -433,7 +449,7 @@ async function handleInteraction(interaction, fac) {
         fac.field = null;
       }
 
-      returnHomeMenu(interaction, fac, "Successfully changed location!");
+      returnHomeMenu(interaction, fac, "Successfully changed location! Remember to save and exit when finished.");
     }
   } else if (interaction.customId == "change pw init") { //jesus christ this whole thing is cancer
     if (fac.password) {
@@ -619,7 +635,7 @@ async function handleInteraction(interaction, fac) {
       row.addComponents(change_button, cancel_button);
 
       let footer = new EmbedBuilder()
-        .setTitle("Successfully changed password!")
+        .setTitle("Successfully changed password! Remember to save and exit when finished.")
 
       await interaction.editReply({ components: [row], embeds: toEmbed(fac).concat(footer) });
 
@@ -632,9 +648,15 @@ async function handleInteraction(interaction, fac) {
 
     await database.replaceOne({ id: fac.id }, fac);
 
+    if (fac_arr.indexOf(fac.id) >= 0) {
+      fac_arr.splice(fac_arr.indexOf(fac.id), 1);
+      console.log("removed id " + fac.id + " from fac array");
+    }
+
     await interaction.update({ components: [], embeds: toEmbed(fac).concat([footer]) });
   } else if (interaction.customId == "imports" || interaction.customId == "exports" || interaction.customId == "services") {
     await returnProductionMenu(interaction, fac, interaction.customId, "Select your action:");
+
   } else if (interaction.customId == "add imports" || interaction.customId == "add exports" || interaction.customId == "add services") {
     let lower = interaction.customId.substring(4).toLowerCase();
     let select = new StringSelectMenuBuilder()
@@ -660,107 +682,264 @@ async function handleInteraction(interaction, fac) {
       embeds: toEmbed(fac).concat([footer])
     })
   } else if (interaction.customId == "select imports" || interaction.customId == "select exports" || interaction.customId == "select services"
-    || interaction.customId == "clear  imports" || interaction.customId == "clear  exports" || interaction.customId == "clear  services"
+    || interaction.customId == "back   imports" || interaction.customId == "back   exports" || interaction.customId == "back   services"
   ) {
     let choice = fac.choice;
-    if (interaction.customId.substring(0, 6) == "select") {
+    let row = new ActionRowBuilder()
+    if (interaction.customId.substring(0, 6) == "select" && interaction.values) {
       choice = interaction.values[0];
       fac.choice = choice;
     }
     let lower = interaction.customId.substring(7);
-    let db = lower == "imports" || lower == "exports" ? items : services;
 
-    if (interaction.customId.substring(0, 5) == "clear") {
-      fac[lower].find((element) => element[0] == fac.choice)[1] = [];
-    }
+    let remove = new ButtonBuilder()
+    .setCustomId("remove items " + lower)
+    .setLabel("Remove Items")
+    .setStyle(ButtonStyle.Danger);
+
+    let add = new ButtonBuilder()
+    .setCustomId("add items " + lower)
+    .setLabel("Add Items")
+    .setStyle(ButtonStyle.Success);
 
     let back = new ButtonBuilder()
       .setCustomId("add " + lower)
       .setLabel("Back")
       .setStyle(ButtonStyle.Secondary);
 
-    let clear = new ButtonBuilder()
-      .setCustomId("clear  " + lower)
-      .setLabel("Clear Options")
-      .setStyle(ButtonStyle.Primary);
+    if (fac[lower].length <= 1) {
+      back.setCustomId(lower);
+    }
+
+    let footer = new EmbedBuilder()
+    .setTitle("Select your action:")
+
+    if (fac[lower].find((element) => element[0] == choice)[1].length > 0) {
+      row.addComponents(add, remove, back);
+
+      await interaction.update({
+        components: [row],
+        embeds: toEmbed(fac).concat([footer])
+      })
+    } else {
+      interaction.customId = "add items " + lower;
+      await handleInteraction(interaction, fac);
+      // row.addComponents(add, back);
+    }
+  } else if (interaction.customId == "add items imports" || interaction.customId == "add items exports" || interaction.customId == "add items services") {
+    let lower = interaction.customId.substring(10);
+    console.log(fac.choice);
+    let current = fac[lower].find((element) => element[0] == fac.choice)[1].map((element) => element[0]);
+    let db = lower == "imports" || lower == "exports" ? items : services;
+    let new_choices = structuredClone(db[fac.choice]);
+
+    for (let ele of current) {
+      let ind = new_choices.indexOf(ele);
+      if (ind >= 0) {
+        new_choices.splice(ind, 1);
+      }
+    }
+
+    let back = new ButtonBuilder()
+      .setCustomId("back   " + lower)
+      .setLabel("Back")
+      .setStyle(ButtonStyle.Secondary);
 
     let select = new StringSelectMenuBuilder()
-    .addOptions(db[choice].map((item) => 
+    .addOptions(new_choices.map((item) => 
       new StringSelectMenuOptionBuilder()
           .setLabel(item)
           .setDescription(item)
           .setValue(item)
     ))
-    .setCustomId("select items " + lower)
-    .setPlaceholder("Select new category items:")
+    .setCustomId("add select " + lower)
+    .setPlaceholder("Add " + fac.choice + " items:")
     .setMinValues(1)
-    .setMaxValues(db[choice].length);
+    .setMaxValues(new_choices.length);
 
     let footer = new EmbedBuilder()
-    .setTitle("Select " + choice + " " + lower + " items.")
-    .setDescription("You may choose up to " + db[choice].length + " options.");
+    .setTitle("Add " + fac.choice + " items.")
+    .setDescription("You may choose up to " + new_choices.length + " items to add.");
 
-    await interaction.update({
-      components: [new ActionRowBuilder().addComponents(select), new ActionRowBuilder().addComponents(clear, back)],
-      embeds: toEmbed(fac).concat([footer])
-    })
-  } else if (interaction.customId == "select items imports" || interaction.customId == "select items exports" || interaction.customId == "select items services") {
+    await interaction.update({components: [new ActionRowBuilder().addComponents(select), new ActionRowBuilder().addComponents(back)], embeds: toEmbed(fac).concat([footer])});
+  
+  } else if (interaction.customId == "add select imports" || interaction.customId == "add select exports" || interaction.customId == "add select services") {
     let choices = interaction.values;
-    let lower = interaction.customId.substring(13);
-    fac[lower].find((element) => element[0] == fac.choice)[1] = choices.map((item) => [item, 0, Math.floor(Date.now()/1000)]);
+    let lower = interaction.customId.substring(11);
+    let ind = fac[lower].findIndex((element) => element[0] == fac.choice);
+    fac[lower][ind][1] = fac[lower][ind][1].concat(choices.map((item) => [item, 0, Math.floor(Date.now()/1000)]));
 
     await returnProductionMenu(interaction, fac, lower, 
-      "Successfully edited " + fac.choice + " " + lower.slice(0, -1) + " items!");
+      "Successfully edited " + fac.choice + " " + lower.slice(0, -1) + " items! Remember to save and exit when finished.");
+      if (fac[lower].length > 1) {
+        fac.choice = null;
+      }
+
+  } else if (interaction.customId == "remove items imports" || interaction.customId == "remove items exports" || interaction.customId == "remove items services") {
+    let lower = interaction.customId.substring(13);
+    let current = fac[lower].find((element) => element[0] == fac.choice)[1].map((element) => element[0]);
+    console.log(current);
+   
+    let back = new ButtonBuilder()
+      .setCustomId("back   " + lower)
+      .setLabel("Back")
+      .setStyle(ButtonStyle.Secondary);
+
+    let select = new StringSelectMenuBuilder()
+    .addOptions(current.map((item) => 
+      new StringSelectMenuOptionBuilder()
+          .setLabel(item)
+          .setDescription(item)
+          .setValue(item)
+    ))
+    .setCustomId("remove select " + lower)
+    .setPlaceholder("Remove " + fac.choice + " items:")
+    .setMinValues(1)
+    .setMaxValues(current.length);
+
+    let footer = new EmbedBuilder()
+    .setTitle("Remove " + fac.choice + " items.")
+    .setDescription("You may choose up to " + current.length + " items to remove.");
+
+    await interaction.update({components: [new ActionRowBuilder().addComponents(select), new ActionRowBuilder().addComponents(back)], embeds: toEmbed(fac).concat([footer])});
+  
+  } else if (interaction.customId == "remove select imports" || interaction.customId == "remove select exports" || interaction.customId == "remove select services") {
+    let choices = interaction.values;
+    let lower = interaction.customId.substring(14);
+
+    let ind = fac[lower].findIndex((element) => element[0] == fac.choice);
+    
+    for (let ele of choices) {
+      let ind2 = fac[lower][ind][1].findIndex((element) => element[0] == ele);
+      if (ind2 >= 0) {
+        fac[lower][ind][1].splice(ind2, 1);
+      }
+    }
+
+    await returnProductionMenu(interaction, fac, lower, 
+      "Successfully removed " + choices.length + " items! Remember to save and exit when finished.");
 
       fac.choice = null;
-  } else if (interaction.customId == "change imports" || interaction.customId == "change exports" || interaction.customId == "change services"
-    || interaction.customId == "clear cate imports" || interaction.customId == "clear cate exports" || interaction.customId == "clear cate services") 
+  }
+  
+  else if (interaction.customId == "change imports" || interaction.customId == "change exports" || interaction.customId == "change services") 
    {
-    let lower;
-    if (interaction.customId.substring(0, 10) == "clear cate") {
-      lower = interaction.customId.substring(11);
-      fac[lower] = [];
-    } else {
-      lower = interaction.customId.substring(7);
-    }
-    let db = lower == "imports" || lower == "exports" ? items : services;
+    let lower = interaction.customId.substring(7);
     
+    let remove = new ButtonBuilder()
+    .setCustomId("remove cate " + lower)
+    .setLabel("Remove Categories")
+    .setStyle(ButtonStyle.Danger);
+
+    let add = new ButtonBuilder()
+    .setCustomId("add cate " + lower)
+    .setLabel("Add Categories")
+    .setStyle(ButtonStyle.Success);
+
     let back = new ButtonBuilder()
       .setCustomId(lower)
       .setLabel("Back")
       .setStyle(ButtonStyle.Secondary);
 
-    let clear = new ButtonBuilder()
-      .setCustomId("clear cate " + lower)
-      .setLabel("Clear Options")
-      .setStyle(ButtonStyle.Primary);
+    let footer = new EmbedBuilder()
+    .setTitle("Select your action:")
+
+    await interaction.update({
+      components: [new ActionRowBuilder().addComponents(add, remove, back)],
+      embeds: toEmbed(fac).concat([footer])
+    })
+
+  } else if (interaction.customId == "add cate imports" || interaction.customId == "add cate exports" || interaction.customId == "add cate services") {
+    let lower = interaction.customId.substring(9);
+    let db = lower == "imports" || lower == "exports" ? items : services;
+    let current = fac[lower].map((element) => element[0]);
+    let new_choices = Object.keys(db);
+
+    for (let ele of current) {
+      let ind = new_choices.indexOf(ele);
+      if (ind >= 0) {
+        new_choices.splice(ind, 1);
+      }
+    }
+    let back = new ButtonBuilder()
+    .setCustomId("change " + lower)
+    .setLabel("Back")
+    .setStyle(ButtonStyle.Secondary);
+
+    if (fac[lower].length <= 1) {
+      back.setCustomId(lower);
+    }
 
     let select = new StringSelectMenuBuilder()
-    .addOptions(Object.keys(db).map((item) => 
+    .addOptions(new_choices.map((item) => 
       new StringSelectMenuOptionBuilder()
           .setLabel(item)
           .setDescription(item)
           .setValue(item)
     ))
-    .setCustomId("select cate " + lower)
+    .setCustomId("add select cate " + lower)
     .setPlaceholder("Select new " + lower.slice(0, -1) + " categories:")
     .setMinValues(1)
-    .setMaxValues(Object.keys(db).length);
+    .setMaxValues(new_choices.length);
 
     let footer = new EmbedBuilder()
     .setTitle("Select new " + lower.slice(0, -1) + " categories.")
-    .setDescription("You may choose up to " + Object.keys(db).length + " options.");
+    .setDescription("You may choose up to " + new_choices.length + " options.");
 
     await interaction.update({
-      components: [new ActionRowBuilder().addComponents(select), new ActionRowBuilder().addComponents(clear, back)],
+      components: [new ActionRowBuilder().addComponents(select), new ActionRowBuilder().addComponents(back)],
       embeds: toEmbed(fac).concat([footer])
     })
-  } else if (interaction.customId == "select cate imports" || interaction.customId == "select cate exports" || interaction.customId == "select cate services") {
+  
+  
+  } else if (interaction.customId == "add select cate imports" || interaction.customId == "add select cate exports" || interaction.customId == "add select cate services") {
     let choices = interaction.values;
-    let lower = interaction.customId.substring(12);
-    fac[lower] = choices.map((element) => [element, []]);
+    let lower = interaction.customId.substring(16);
+    fac[lower] = fac[lower].concat(choices.map((element) => [element, []]));
 
-    await returnProductionMenu(interaction, fac, lower, "Successfully edited " + lower.slice(0, -1) + " categories!");
+    await returnProductionMenu(interaction, fac, lower, "Successfully added " + choices.length + " categories! Remember to save and exit when finished.");
+  
+  } else if (interaction.customId == "remove cate imports" || interaction.customId == "remove cate exports" || interaction.customId == "remove cate services") {
+    let lower = interaction.customId.substring(12);
+    let current = fac[lower].map((element) => element[0]);
+   
+    let back = new ButtonBuilder()
+      .setCustomId(lower)
+      .setLabel("Back")
+      .setStyle(ButtonStyle.Secondary);
+
+    let select = new StringSelectMenuBuilder()
+    .addOptions(current.map((item) => 
+      new StringSelectMenuOptionBuilder()
+          .setLabel(item)
+          .setDescription(item)
+          .setValue(item)
+    ))
+    .setCustomId("remove select cate " + lower)
+    .setPlaceholder("Remove " + lower.slice(0, -1) + " categories:")
+    .setMinValues(1)
+    .setMaxValues(current.length);
+
+    let footer = new EmbedBuilder()
+    .setTitle("Remove " + lower.slice(0, -1) + " items.")
+    .setDescription("You may choose up to " + current.length + " categories to remove.");
+
+    await interaction.update({components: [new ActionRowBuilder().addComponents(select), new ActionRowBuilder().addComponents(back)], embeds: toEmbed(fac).concat([footer])});
+  
+  } else if (interaction.customId == "remove select cate imports" || interaction.customId == "remove select cate exports" || interaction.customId == "remove select cate services") {
+    let choices = interaction.values;
+    let lower = interaction.customId.substring(19);
+    
+    for (let ele of choices) {
+      let ind2 = fac[lower].findIndex((element) => element[0] == ele);
+      if (ind2 >= 0) {
+        fac[lower].splice(ind2, 1);
+      }
+    }
+
+    await returnProductionMenu(interaction, fac, lower, 
+      "Successfully removed " + choices.length + " categories! Remember to save and exit when finished.");
+
   }
 }
 
@@ -771,40 +950,60 @@ module.exports = {
     let id = interaction.options.getInteger('id');
     let fac = await database.findOne({ id: id });
     if (fac) { //facility found
-      let embed = toEmbed(fac);
-      let yes = new ButtonBuilder()
-        .setCustomId('confirm edit fac')
-        .setLabel("Yes")
-        .setStyle(ButtonStyle.Success);
+      if (fac_arr.indexOf(id) == -1) {
+        fac_arr.push(id);
+        let embed = toEmbed(fac);
+        let yes = new ButtonBuilder()
+          .setCustomId('confirm edit fac')
+          .setLabel("Yes")
+          .setStyle(ButtonStyle.Success);
+  
+        let no = new ButtonBuilder()
+          .setCustomId("reject edit fac")
+          .setLabel("No")
+          .setStyle(ButtonStyle.Danger);
+  
+        let row = new ActionRowBuilder()
+          .addComponents(yes, no);
+  
+        let embed2 = new EmbedBuilder()
+          .setTitle("Is this the facility you want to edit?");
+  
+        let response = await interaction.followUp({ content: "", components: [row], embeds: embed.concat([embed2]) });
+  
+        let buttoncollector = response.createMessageComponentCollector({
+          componentType: ComponentType.Button,
+          time: 60_000,
+          filter: i => i.user.id === interaction.user.id,
+        })
+        buttoncollector.on('collect', async i2 => {
+          buttoncollector.resetTimer();
+          stringcollector.resetTimer();
+          handleInteraction(i2, fac);
+        });
+  
+        let stringcollector = response.createMessageComponentCollector({
+          componentType: ComponentType.StringSelect,
+          time: 60_000,
+          filter: i => i.user.id === interaction.user.id,
+        })
+        
+        stringcollector.on('collect', async i2 => {
+          stringcollector.resetTimer();
+          buttoncollector.resetTimer();
+          handleInteraction(i2, fac);
+        });
 
-      let no = new ButtonBuilder()
-        .setCustomId("reject edit fac")
-        .setLabel("No")
-        .setStyle(ButtonStyle.Danger);
-
-      let row = new ActionRowBuilder()
-        .addComponents(yes, no);
-
-      let embed2 = new EmbedBuilder()
-        .setTitle("Is this the facility you want to edit?");
-
-      let response = await interaction.followUp({ content: "", components: [row], embeds: embed.concat([embed2]) });
-
-      response.createMessageComponentCollector({
-        componentType: ComponentType.Button,
-        time: 3_600_000,
-        filter: i => i.user.id === interaction.user.id,
-      }).on('collect', async i2 => {
-        handleInteraction(i2, fac);
-      });
-
-      response.createMessageComponentCollector({
-        componentType: ComponentType.StringSelect,
-        time: 3_600_000,
-        filter: i => i.user.id === interaction.user.id,
-      }).on('collect', async i2 => {
-        handleInteraction(i2, fac);
-      });
+        stringcollector.on("end", async e => {
+          if (fac_arr.indexOf(id) >= 0) {
+            fac_arr.splice(fac_arr.indexOf(id), 1);
+          }
+          interaction.followUp("Interaction closed: a response was not received within one minute!")
+        });
+      } else {
+        await interaction.followUp("There is currently an active /editfac command that must be finished first!");
+      }
+      
 
     } else { //facility not found
       let embed = new EmbedBuilder()
