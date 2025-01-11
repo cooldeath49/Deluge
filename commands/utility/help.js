@@ -22,6 +22,9 @@ let embed = new EmbedBuilder()
     },
     {
         name: "/help", value: "Opens up the help display. You may enter this command at any time."
+    },
+    {
+        name: "/restock (id) (item) (stock) (OPTIONAL password)", value: "Restocks an **export item** to a certain amount. Enter the id of the facility, the item, and the new stock level. If your facility is password-locked, a password is required."
     }
 );
 
