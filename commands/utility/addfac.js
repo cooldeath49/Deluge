@@ -257,23 +257,30 @@ async function handleInteraction(interaction, fac) {
 
       await interaction.showModal(modal);
 
-      client.once(Events.InteractionCreate, async new_int => {
-            if (!new_int.isModalSubmit() || new_int.customId != "new pw modal") return;
-            let answer = new_int.fields.getTextInputValue("new pw");
-            fac.password = answer;
+      interaction.awaitModalSubmit({
+        time: 60_000,
+        filter: i => i.user.id === interaction.user.id,
+      })
+      .then(async new_int => {
+        if (!new_int.isModalSubmit() || new_int.customId != "new pw modal") return;
+        let answer = new_int.fields.getTextInputValue("new pw");
+        fac.password = answer;
 
-            let newfac = await add(fac);
+        let newfac = await add(fac);
+  
+        if (newfac) {
+          let embed2 = new EmbedBuilder()
+          .setTitle("Successfully added a facility!")
+          .setDescription("Use /editfac to edit remaining facility details")
+        await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
+        } else {
+          
+          await interaction.editReply("Failed to add facility, internal error");
+        }
+      })
+      .catch(err => {console.log("nothing was received")});
+
       
-            if (newfac) {
-              let embed2 = new EmbedBuilder()
-              .setTitle("Successfully added a facility!")
-              .setDescription("Use /editfac to edit remaining facility details")
-            await interaction.editReply({ content: "", embeds: [embed2].concat(toEmbed(fac)), components: [] })
-            } else {
-              
-              await interaction.editReply("Failed to add facility, internal error");
-            }
-          })
     }
    } else if (interaction.customId == "no pw") {
     let newfac = await add(fac);
@@ -380,7 +387,11 @@ async function handleInteraction(interaction, fac) {
 
       await interaction.showModal(modal);
 
-      client.once(Events.InteractionCreate, async submitted => {
+      interaction.awaitModalSubmit({
+        time: 60_000,
+        filter: i => i.user.id === interaction.user.id,
+      })
+      .then(async submitted => {
         if (!submitted.isModalSubmit() || submitted.customId != "regiment modal") return;
         
         fac.regiment = submitted.fields.getTextInputValue("regiment");
@@ -417,6 +428,7 @@ async function handleInteraction(interaction, fac) {
         await interaction.editReply({content: "", components: [new ActionRowBuilder().addComponents(select), new ActionRowBuilder().addComponents(skip, cancel)], embeds: [embed]});
 
       })
+      .catch((err) => {console.log("nothing received 431")});
 
     }
     
@@ -541,7 +553,11 @@ async function handleInteraction(interaction, fac) {
   
       await interaction.showModal(modal);
   
-      client.once(Events.InteractionCreate, async new_int => {
+      interaction.awaitModalSubmit({
+        time: 60_000,
+        filter: i => i.user.id === interaction.user.id,
+      })
+      .then(async new_int => {
         if (!new_int.isModalSubmit() || new_int.customId != "notes in") return;
         let note = new_int.fields.getTextInputValue("notes input");
         fac.notes = note;
@@ -562,6 +578,7 @@ async function handleInteraction(interaction, fac) {
       
         await interaction.editReply({content: "", embeds: [footer], components: [new ActionRowBuilder().addComponents(yes_button, no_button)]});
       })
+      .catch((err) => {console.log("nothing received 581")});
   } else if (interaction.customId == "no notes") {
     let yes_button = new ButtonBuilder()
         .setLabel("Yes")
