@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require("discord.js");
-const {hexes1, hexes1only, database} = require("../../storage.js");
+const {hexes1, hexes1only, database, hexes1_fuse} = require("../../storage.js");
 
 const data = new SlashCommandBuilder()
   .setName("listfac")
@@ -7,7 +7,6 @@ const data = new SlashCommandBuilder()
   .addStringOption((option) => option
     .setName("hex")
     .setDescription("Hex to search for facilities")
-    .setAutocomplete(true)
 
   );
 
@@ -58,13 +57,6 @@ async function getHexEmbed(search_array, facilities) {
 
 module.exports = {
   data: data,
-  async autocomplete(interaction) {
-    let choices = hexes1only; //TODO: replace this with a static map
-    let filtered = choices.filter(choice => choice.startsWith(interaction.options.getFocused()));
-    await interaction.respond(
-      filtered.map(choice => ({ name: choice, value: choice })),
-    )
-  },
   async execute(interaction) {
     await interaction.deferReply();
     if (await database.countDocuments() - 1 == 0) {
@@ -142,16 +134,17 @@ module.exports = {
           interaction.followUp({content: "", embeds: [headerEmbed].concat(embeds)});
         }
 
-
       } else {
-        if (hexes1only.indexOf(target) >= 0) {
+        let fused_target = hexes1_fuse.search(target);
+        if (fused_target.length > 0 && hexes1only.indexOf(fused_target[0].item) >= 0) {
+          let found = fused_target[0].item;
 
-          let embeds = await getHexEmbed([[target]], facilities);
+          let embeds = await getHexEmbed([[found]], facilities);
           if (embeds.length > 0) {
               embeds[0].setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
               await interaction.followUp({content: "", embeds: embeds});
           } else {
-            await interaction.followUp(target + " has no registered facilities!");
+            await interaction.followUp(found + " has no registered facilities!");
           }
         
         } else {

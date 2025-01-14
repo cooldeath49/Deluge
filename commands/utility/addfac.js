@@ -611,7 +611,7 @@ module.exports = {
       .setLabel("Add Test Facility")
       .setStyle(ButtonStyle.Secondary)
 
-    let row = new ActionRowBuilder().addComponents(addbutton, cancel, testbutton);
+    let row = new ActionRowBuilder().addComponents(addbutton, cancel);
 
     let embed = new EmbedBuilder().setTitle("Would you like to add a facility?");
     // [chosen_hex, fac.town, grid_letter, grid_number, regiment, contact, nickname, field, relative]);

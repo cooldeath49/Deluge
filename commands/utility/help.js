@@ -6,7 +6,7 @@ const data = new SlashCommandBuilder()
 
 let embed = new EmbedBuilder()
 .setTitle("Help")
-.setDescription("Welcome to the Deluge bot, a registry bot that lets Wardens better coordinate artillery distribution! You may find logged facilities here, detailed with their coordinates, production information, and more.\nTo get started, check out the commands below.")
+.setDescription("Welcome to the Deluge bot, a registry bot that lets Wardens better organize facility logistics! Deluge contains a large database that houses various facilities, all logged by facility players. You may find logged facilities here, detailed with their coordinates, production information, and more.\nTo get started, check out the commands below.")
 .addFields(
     {
         name: "/listfac (OPTIONAL hex)", value: "Lists registered facilities across all hexes and towns. Optionally, you may list facilities within only a specified hex by passing it as an argument to this command."
@@ -24,7 +24,7 @@ let embed = new EmbedBuilder()
         name: "/help", value: "Opens up the help display. You may enter this command at any time."
     },
     {
-        name: "/restock (id) (item) (stock) (OPTIONAL password)", value: "Restocks an **export item** to a certain amount. Enter the id of the facility, the item, and the new stock level. If your facility is password-locked, a password is required."
+        name: "/restock (id) (item) (stock) (OPTIONAL password)", value: "Restocks an **export item** to a certain amount. Enter the id of the facility, the item, and the new stock level. The specified item must be a listed export item in your facility. If your facility is password-locked, a password is required."
     }
 );
 

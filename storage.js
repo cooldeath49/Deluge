@@ -440,7 +440,13 @@ const items_fuse = new Fuse(all_items, {
 
   })
 
+
 const hexes1only = hexes1.map((element) => element[0]);
+
+const hexes1_fuse = new Fuse(hexes1only, {
+  shouldSort: true,
+  includeScore: true
+})
 
 const hexesgraph = { //TODO finish this graph oh god oh god oh god oh god oh god oh god
   "Farranac Coast": ["Stonecradle", ]
@@ -652,7 +658,7 @@ function toEmbed(fac) {
     for (let slice in fac.imports) {
       let cate = fac.imports[slice][0];
       let cate_items = fac.imports[slice][1];
-      let value_str = getTooltip(fac, "details", cate_items);
+      let value_str = getTooltip(fac, "time details", cate_items);
 
       imports_embed.addFields({
         name: cate, value: value_str, inline: true
@@ -891,6 +897,7 @@ module.exports = {
   database: database,
   items: items,
   services: services,
-  items_fuse: items_fuse
+  items_fuse: items_fuse,
+  hexes1_fuse: hexes1_fuse,
 }
 

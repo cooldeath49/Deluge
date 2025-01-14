@@ -37,14 +37,13 @@ module.exports = {
   data: data,
   async execute(interaction) {
     await interaction.deferReply();
+    
     let target = interaction.options.getString("coordinates");
     let groups = target.match(paste_regex);
     if (groups) {
         let hex = groups[1];
         let letter = groups[2];
         let number = groups[3];
-
-        console.log(hex, letter, number);
 
         if (storage.hexes1only.indexOf(hex) >= 0 &&
         letter >= "A" && letter <= "R" &&
