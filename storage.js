@@ -568,7 +568,7 @@ function getTooltip(fac, state, arr_items) {
     let str = "";
     if (arr_items.length > 0) { 
       for (let ind in arr_items) {
-        let count = arr_items[ind].count;
+        let count = arr_items[ind].stock;
         str = str + "- " + (count >= 1000 ? (Math.floor(count/100)/10).toString() + "k" : count) + " " + arr_items[ind].name + ", *last updated <t:" + arr_items[ind].date + ":R>*\n"
       }
     } else {

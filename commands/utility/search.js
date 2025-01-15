@@ -74,7 +74,9 @@ async function toEmbedSearch(item, facilities) {
 module.exports = {
   data: data,
   async execute(interaction) {
-    await interaction.deferReply();
+    await interaction.reply("WIP");
+
+    /*
     if (await database.countDocuments() - 1 == 0) {
       interaction.followUp("No facilities have been registered!");
       return;
@@ -168,6 +170,6 @@ module.exports = {
         }
         
       }
-    }
+    }*/
   }
 }

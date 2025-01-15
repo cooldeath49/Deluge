@@ -61,8 +61,8 @@ module.exports = {
             let fuse_item = items_fuse.search(item);
             if (fuse_item.length > 0) {
                 let name = fuse_item[0].item;
-                let import_slice = fac.imports.find((slice) => slice[1].find((inner) => inner[0] == fuse_item[0].item)); //search imports
-                let export_slice = fac.exports.find((slice) => slice[1].find((inner) => inner[0] == fuse_item[0].item)); //search exports
+                let import_slice = fac.imports.find((slice) => slice.arr.find((inner) => inner.name == fuse_item[0].item)); //search imports
+                let export_slice = fac.exports.find((slice) => slice.arr.find((inner) => inner.name == fuse_item[0].item)); //search exports
                 let slice;
                 if (import_slice || export_slice) {
                     if (import_slice && export_slice) {
@@ -133,20 +133,20 @@ module.exports = {
                             .setTitle("Interaction cancelled")
                             await inter.update({components: [], embeds: toEmbed(fac).concat([newEmbed])})
                         } else if (inter.customId == "yes") {
-                            let in_slice = slice[1].find((inner) => inner[0] == name);
+                            let in_slice = slice.arr.find((inner) => inner.name == name);
                             let newEmbed = new EmbedBuilder()
                             if (action == "pull") {
-                                in_slice[1] = in_slice[1] - stock >= 0 ? in_slice[1] - stock : 0;
+                                in_slice.stock = in_slice.stock - stock >= 0 ? in_slice.stock - stock : 0;
                                 newEmbed.setTitle("Successfully pulled " + stock + " " + name + "!");
                             } else if (action == "add") {
-                                in_slice[1] = in_slice[1] + stock;
+                                in_slice.stock = in_slice.stock + stock;
                                 newEmbed.setTitle("Successfully added " + stock + " " + name + "!");
                             } else if (action == "set") {
-                                in_slice[1] = stock;
+                                in_slice.stock = stock;
                                 newEmbed.setTitle("Successfully reset " + name + " stocks to " + stock + "!")
                             }
-                            in_slice[2] = Math.floor(Date.now()/1000);
-                            newEmbed.setDescription("New stock: " + in_slice[1] + " " + name);
+                            in_slice.date = Math.floor(Date.now()/1000);
+                            newEmbed.setDescription("New stock: " + in_slice.stock + " " + name);
                             await database.replaceOne({ id: fac.id }, fac);
 
                             await inter.update({components: [], embeds: toEmbed(fac).concat([newEmbed])});
