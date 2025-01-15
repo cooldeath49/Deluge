@@ -17,9 +17,32 @@
 
   async function ah() {
     await sharp("./HexImages/MapAcrithiaHex.png")
-    // .rotate(45)
+    .rotate(45)
     .grayscale()
     .toFormat("jpeg", {mozjpeg: true})
     .toFile("acrithia.jpeg");
   }
 ah();
+
+let a = "hi";
+let c;
+switch (a) {
+
+  case "ha": {
+    let b = 4;
+    console.log(b);
+    break;
+  }
+  case "hi": {
+    let b = 5;
+    c = b;
+    console.log(c);
+    break;
+  }
+  case "no": {
+    let b = 6;
+    console.log(b);
+    break;
+  }
+}
+console.log(c);

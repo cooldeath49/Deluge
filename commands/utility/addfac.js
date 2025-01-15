@@ -434,7 +434,11 @@ async function handleInteraction(interaction, fac) {
     
   } else if (interaction.customId == "import select" || interaction.customId == "skip import") {
     if (interaction.values) {
-      fac.imports = interaction.values.map((element) => [element, []]);
+      fac.imports = interaction.values.map((element) => {
+        return {
+          category: element,
+          arr: []
+      }});
     } else {
       fac.imports = [];
     }
@@ -472,7 +476,11 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "export select" || interaction.customId == "skip export") {
     
     if (interaction.values) {
-      fac.exports = interaction.values.map((element) => [element, []]);
+      fac.exports = interaction.values.map((element) => {
+        return {
+          category: element,
+          arr: []
+      }});
     } else {
       fac.exports = [];
     }
@@ -515,7 +523,11 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "service select" || interaction.customId == "skip service") {
     
     if (interaction.values) {
-      fac.services = interaction.values.map((element) => [element, []]);
+      fac.services = interaction.values.map((element) => {
+        return {
+          category: element,
+          arr: []
+      }});
     } else {
       fac.services = [];
     }

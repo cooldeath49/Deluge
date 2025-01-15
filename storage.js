@@ -416,7 +416,8 @@ const services = {
   "Heavy Tank Assembly": [
     "BT",
     "Flame BT",
-    "SHT"
+    "SHT",
+    "SPG"
   ],
 
   // "Vehicle Vetting": [
@@ -524,7 +525,7 @@ function getTooltip(fac, state, arr_items) {
       let str2 = "";
       //item string
       for (let ind in fac[state]) {
-        let details = getTooltip(fac, "details", fac[state][ind][1]);
+        let details = getTooltip(fac, "details", fac[state][ind].arr);
         if (ind == fac[state].length - 1) {
           str1 = str1 + (details == "None listed" ? "" : details);
         } else {
@@ -539,9 +540,9 @@ function getTooltip(fac, state, arr_items) {
       //Category string
       for (let ind in fac[state]) {
         if (ind == fac[state].length - 1) {
-          str2 = str2 + fac[state][ind][0];
+          str2 = str2 + fac[state][ind].category;
         } else {
-          str2 = str2 + fac[state][ind][0] + ", ";
+          str2 = str2 + fac[state][ind].category + ", ";
         }
       }
       return (str1.length < 100 && str1 != "None listed") ? str1 : str2;
@@ -553,9 +554,9 @@ function getTooltip(fac, state, arr_items) {
     if (arr_items.length > 0) {
       for (let ind in arr_items) {
         if (ind == arr_items.length - 1) {
-          str = str + arr_items[ind][0];
+          str = str + arr_items[ind].name;
         } else {
-          str = str + arr_items[ind][0] + ", ";
+          str = str + arr_items[ind].name + ", ";
         }
       }
     } else {
@@ -567,8 +568,8 @@ function getTooltip(fac, state, arr_items) {
     let str = "";
     if (arr_items.length > 0) { 
       for (let ind in arr_items) {
-        let count = arr_items[ind][1];
-        str = str + "- " + (count >= 1000 ? (Math.floor(count/100)/10).toString() + "k" : count) + " " + arr_items[ind][0] + ", *last updated <t:" + arr_items[ind][2] + ":R>*\n"
+        let count = arr_items[ind].count;
+        str = str + "- " + (count >= 1000 ? (Math.floor(count/100)/10).toString() + "k" : count) + " " + arr_items[ind].name + ", *last updated <t:" + arr_items[ind].date + ":R>*\n"
       }
     } else {
       str = "None listed";
@@ -656,8 +657,8 @@ function toEmbed(fac) {
     .setTitle("Imports")
 
     for (let slice in fac.imports) {
-      let cate = fac.imports[slice][0];
-      let cate_items = fac.imports[slice][1];
+      let cate = fac.imports[slice].category;
+      let cate_items = fac.imports[slice].arr;
       let value_str = getTooltip(fac, "time details", cate_items);
 
       imports_embed.addFields({
@@ -672,8 +673,8 @@ function toEmbed(fac) {
     .setTitle("Exports")
 
     for (let slice in fac.exports) {
-      let cate = fac.exports[slice][0];
-      let cate_items = fac.exports[slice][1];
+      let cate = fac.exports[slice].category;
+      let cate_items = fac.exports[slice].arr;
       let value_str = getTooltip(fac, "time details", cate_items);
 
       exports_embed.addFields({
@@ -688,8 +689,8 @@ function toEmbed(fac) {
     .setTitle("Services")
 
     for (let slice in fac.services) {
-      let cate = fac.services[slice][0];
-      let cate_items = fac.services[slice][1];
+      let cate = fac.services[slice].category;
+      let cate_items = fac.services[slice].arr;
       let value_str = getTooltip(fac, "details", cate_items);
 
       services_embed.addFields({

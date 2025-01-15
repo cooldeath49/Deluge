@@ -662,9 +662,9 @@ async function handleInteraction(interaction, fac) {
     let select = new StringSelectMenuBuilder()
     .addOptions(fac[lower].map((slice) => 
       new StringSelectMenuOptionBuilder()
-          .setLabel(slice[0])
-          .setDescription(slice[0])
-          .setValue(slice[0])
+          .setLabel(slice.category)
+          .setDescription(slice.category)
+          .setValue(slice.category)
     ))
     .setCustomId("select " + lower)
     .setPlaceholder("Select which " + lower.slice(0, -1) + " category to edit:");
@@ -684,7 +684,7 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "select imports" || interaction.customId == "select exports" || interaction.customId == "select services"
     || interaction.customId == "back   imports" || interaction.customId == "back   exports" || interaction.customId == "back   services"
   ) {
-    let choice = fac.choice;
+    let choice = fac.choice; //category
     let row = new ActionRowBuilder()
     if (interaction.customId.substring(0, 6) == "select" && interaction.values) {
       choice = interaction.values[0];
@@ -714,7 +714,7 @@ async function handleInteraction(interaction, fac) {
     let footer = new EmbedBuilder()
     .setTitle("Select your action:")
 
-    if (fac[lower].find((element) => element[0] == choice)[1].length > 0) {
+    if (fac[lower].find((element) => element.category == choice).arr.length > 0) {
       row.addComponents(add, remove, back);
 
       await interaction.update({
@@ -728,8 +728,7 @@ async function handleInteraction(interaction, fac) {
     }
   } else if (interaction.customId == "add items imports" || interaction.customId == "add items exports" || interaction.customId == "add items services") {
     let lower = interaction.customId.substring(10);
-    console.log(fac.choice);
-    let current = fac[lower].find((element) => element[0] == fac.choice)[1].map((element) => element[0]);
+    let current = fac[lower].find((element) => element.category == fac.choice).arr.map((element) => element.name);
     let db = lower == "imports" || lower == "exports" ? items : services;
     let new_choices = structuredClone(db[fac.choice]);
 
@@ -766,8 +765,15 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "add select imports" || interaction.customId == "add select exports" || interaction.customId == "add select services") {
     let choices = interaction.values;
     let lower = interaction.customId.substring(11);
-    let ind = fac[lower].findIndex((element) => element[0] == fac.choice);
-    fac[lower][ind][1] = fac[lower][ind][1].concat(choices.map((item) => [item, 0, Math.floor(Date.now()/1000)]));
+    let ind = fac[lower].findIndex((element) => element.category == fac.choice);
+    fac[lower][ind].arr = fac[lower][ind].arr
+    .concat(choices.map((item) => {
+      return {
+        name: item,
+        stock: 0,
+        date: Math.floor(Date.now()/1000)
+      }
+    }));
 
     await returnProductionMenu(interaction, fac, lower, 
       "Successfully edited " + fac.choice + " " + lower.slice(0, -1) + " items! Remember to save and exit when finished.");
@@ -777,7 +783,7 @@ async function handleInteraction(interaction, fac) {
 
   } else if (interaction.customId == "remove items imports" || interaction.customId == "remove items exports" || interaction.customId == "remove items services") {
     let lower = interaction.customId.substring(13);
-    let current = fac[lower].find((element) => element[0] == fac.choice)[1].map((element) => element[0]);
+    let current = fac[lower].find((element) => element.category == fac.choice).arr.map((element) => element.name);
     console.log(current);
    
     let back = new ButtonBuilder()
@@ -807,12 +813,12 @@ async function handleInteraction(interaction, fac) {
     let choices = interaction.values;
     let lower = interaction.customId.substring(14);
 
-    let ind = fac[lower].findIndex((element) => element[0] == fac.choice);
+    let ind = fac[lower].findIndex((element) => element.category == fac.choice);
     
     for (let ele of choices) {
-      let ind2 = fac[lower][ind][1].findIndex((element) => element[0] == ele);
+      let ind2 = fac[lower][ind].arr.findIndex((element) => element.name == ele);
       if (ind2 >= 0) {
-        fac[lower][ind][1].splice(ind2, 1);
+        fac[lower][ind].arr.splice(ind2, 1);
       }
     }
 
@@ -852,7 +858,7 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "add cate imports" || interaction.customId == "add cate exports" || interaction.customId == "add cate services") {
     let lower = interaction.customId.substring(9);
     let db = lower == "imports" || lower == "exports" ? items : services;
-    let current = fac[lower].map((element) => element[0]);
+    let current = fac[lower].map((element) => element.category);
     let new_choices = Object.keys(db);
 
     for (let ele of current) {
@@ -895,13 +901,18 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "add select cate imports" || interaction.customId == "add select cate exports" || interaction.customId == "add select cate services") {
     let choices = interaction.values;
     let lower = interaction.customId.substring(16);
-    fac[lower] = fac[lower].concat(choices.map((element) => [element, []]));
+    fac[lower] = fac[lower].concat(choices.map((element) => {
+      return {
+        category: element,
+        arr: []
+      }
+    }));
 
     await returnProductionMenu(interaction, fac, lower, "Successfully added " + choices.length + " categories! Remember to save and exit when finished.");
   
   } else if (interaction.customId == "remove cate imports" || interaction.customId == "remove cate exports" || interaction.customId == "remove cate services") {
     let lower = interaction.customId.substring(12);
-    let current = fac[lower].map((element) => element[0]);
+    let current = fac[lower].map((element) => element.category);
    
     let back = new ButtonBuilder()
       .setCustomId(lower)
@@ -931,7 +942,7 @@ async function handleInteraction(interaction, fac) {
     let lower = interaction.customId.substring(19);
     
     for (let ele of choices) {
-      let ind2 = fac[lower].findIndex((element) => element[0] == ele);
+      let ind2 = fac[lower].findIndex((element) => element.category == ele);
       if (ind2 >= 0) {
         fac[lower].splice(ind2, 1);
       }

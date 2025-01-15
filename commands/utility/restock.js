@@ -42,7 +42,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply();
         let id = interaction.options.getInteger('id');
-        let pw = interaction.options.getString("pw")
+        let pw = interaction.options.getString("pw");
         let item = interaction.options.getString("item");
         let action = interaction.options.getString("action");
         let stock = interaction.options.getInteger("stock");

@@ -23,15 +23,5 @@ module.exports = {
         } else {
             await interaction.editReply("No facility with id " + id + " could be found!");
         }
-
-
-        /*let fac = allfacs.facility_id_tracker[id];
-        if (fac) {
-            let embed = fac.toEmbed();
-            await interaction.reply({ content: "", embeds: embed });
-        } else {
-            await interaction.reply("No facility with id " + id + " could be found!");
-        }*/
-
     }
 }
