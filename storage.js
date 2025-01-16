@@ -441,6 +441,10 @@ const items_fuse = new Fuse(all_items, {
 
   })
 
+  const items_cate_fuse = new Fuse(Object.keys(items), {
+    shouldSort: true,
+    includeScore: true
+  })
 
 const hexes1only = hexes1.map((element) => element[0]);
 
@@ -900,5 +904,6 @@ module.exports = {
   services: services,
   items_fuse: items_fuse,
   hexes1_fuse: hexes1_fuse,
+  items_cate_fuse: items_cate_fuse
 }
 

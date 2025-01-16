@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require("discord.js");
-const {hexes1, hexes1only, database, hexes1_fuse} = require("../../storage.js");
+const {hexes1, hexes1only, database, hexes1_fuse, items_fuse, items, items_cate_fuse } = require("../../storage.js");
+
 
 const data = new SlashCommandBuilder()
     .setName("search")
@@ -8,52 +9,79 @@ const data = new SlashCommandBuilder()
         .setName("imports")
         .setDescription("Search through import categories")
         .addStringOption((option) => option
-            .setName("item or category")
+            .setName("query")
             .setDescription("Item or a category to search for")
             .setRequired(true)
-        )
+        ).addStringOption((option) => option
+        .setName("hex")
+        .setDescription("Search through a hex only")
+        .setRequired(false)
+    )
     ).addSubcommand((subcommand) => subcommand
     .setName("exports")
     .setDescription("Search through export categories")
     .addStringOption((option) => option
-        .setName("item or category")
+        .setName("query")
         .setDescription("Item or category to search for")
         .setRequired(true)
-    )
-    ).addSubcommand((subcommand) => subcommand
-    .setName("services")
-    .setDescription("Search through vehicle service categories")
-    .addStringOption((option) => option
-        .setName("vehicle or service")
-        .setDescription("Vehicle or service to search for")
-        .setRequired(true)
-    )
-).addStringOption((option) => option
+    ).addStringOption((option) => option
     .setName("hex")
     .setDescription("Search through a hex only")
     .setRequired(false)
 )
+    ).addSubcommand((subcommand) => subcommand
+    .setName("services")
+    .setDescription("Search through vehicle service categories")
+    .addStringOption((option) => option
+        .setName("query")
+        .setDescription("Vehicle or service to search for")
+        .setRequired(true)
+    ).addStringOption((option) => option
+    .setName("hex")
+    .setDescription("Search through a hex only")
+    .setRequired(false)
+)
+)
 
  //assumes facilities contains only facilities that satisfy the item query
-async function toEmbedSearch(item, facilities) {
+async function toEmbedSearch(item, section, facilities) {
   let embeds = [];
   let hexes_strs = {}; 
   for (let i = 0; i < facilities.length; i++) {
     let fac = facilities[i];
-    for (let ind in search_array) {
-      if (fac.hex == search_array[ind][0]) {
+    let slice = fac[section].find((element) => element.category == item);
+    if (slice) { //input was a category
+      if (hexes_strs[fac.hex]) { //already an entry for this hex
+        if (hexes_strs[fac.hex][fac.town]) { //town has an entry
+          hexes_strs[fac.hex][fac.town] = hexes_strs[fac.hex][fac.town] + 
+          "\"" + fac.nickname + "\": " + item + " - ID-" + fac.id + "\n";
+          // "Nickname", Weapons Platform - ID-39
+          // "Another Nickname", Tank Factory - ID-40
+        } else { //no town, initialize string
+          hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + item + " - ID-" + fac.id + "\n";
+        } 
+      } else { //no hex entry
+        hexes_strs[fac.hex] = {}; //initialize
+        hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + item + " - ID-" + fac.id + "\n";
+      }
+    } else {//input must be an item
+      let ind = fac[section].findIndex((cate) => cate.arr.find((ele) => ele.name == item));
+      if (ind >= 0) { //item exists in the facility
+        slice = fac[section][ind].arr.find((ele) => ele.name == item);
         if (hexes_strs[fac.hex]) { //already an entry for this hex
           if (hexes_strs[fac.hex][fac.town]) { //town has an entry
             hexes_strs[fac.hex][fac.town] = hexes_strs[fac.hex][fac.town] + 
-            "\"" + fac.nickname + " - " + "\" ID-" + fac.id + "\n";
+            "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
+            //"Nickname": 500 Concrete, last updated 1 day ago - ID-38
           } else { //no town, initialize string
-            hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\" ID-" + fac.id + "\n";
+            hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
           } 
         } else { //no hex entry
           hexes_strs[fac.hex] = {}; //initialize
-          hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\" ID-" + fac.id + "\n";
+          hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
         }
       }
+
     }
   }
 
@@ -74,16 +102,37 @@ async function toEmbedSearch(item, facilities) {
 module.exports = {
   data: data,
   async execute(interaction) {
-    await interaction.reply("WIP");
-
-    /*
+    // await interaction.reply("WIP");
+    await interaction.deferReply();
     if (await database.countDocuments() - 1 == 0) {
       interaction.followUp("No facilities have been registered!");
       return;
     } else {
-      let facilities = await database.find({}).toArray();
+    
       let target = interaction.options.getString('hex');
+
       if (!target) { //No target specified, load all facilities
+        let subcmd = interaction.options.getSubcommand();
+        let item;
+        let fuse_item;
+        let facilities;
+        if (subcmd == "imports" || subcmd == "exports") {
+          item = interaction.options.getString("query");
+          fuse_item = items_cate_fuse.search(item);
+          console.log(item, fuse_item);
+          if (fuse_item.length > 0) {
+            if (Object.keys(items).indexOf(fuse_item[0].item) >= 0) {
+              //category search
+              facilities = await database.find({
+                imports: {
+                  category: fuse_item[0].item
+                }
+              }).toArray();
+              console.log(facilities);
+            }
+          }
+          
+        }
         let headerEmbed = new EmbedBuilder()
         .setTitle("All Facilities")
         .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
@@ -170,6 +219,6 @@ module.exports = {
         }
         
       }
-    }*/
+    }
   }
 }

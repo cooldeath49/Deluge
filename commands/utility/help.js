@@ -91,6 +91,11 @@ module.exports = {
                     })
                     break;
                 }
+                default: {
+                    target = new EmbedBuilder()
+                    .setTitle("Not a valid command!");
+                    break;
+                }
             }
         }
         await interaction.reply({embeds: [target]});
