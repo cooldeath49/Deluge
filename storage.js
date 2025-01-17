@@ -435,16 +435,30 @@ for (let slice in items) {
   all_items = all_items.concat(items[slice]);
 }
 
+let all_services = [];
+for (let slice in services) {
+  all_services = all_services.concat(services[slice]);
+}
+
+const services_fuse = new Fuse(all_services, {
+  shouldSort: true,
+    includeScore: true,
+})
+
 const items_fuse = new Fuse(all_items, {
     shouldSort: true,
     includeScore: true,
+})
 
-  })
+const items_cate_fuse = new Fuse(Object.keys(items), {
+  shouldSort: true,
+  includeScore: true
+})
 
-  const items_cate_fuse = new Fuse(Object.keys(items), {
-    shouldSort: true,
-    includeScore: true
-  })
+const services_cate_fuse = new Fuse(Object.keys(services), {
+  shouldSort: true,
+    includeScore: true,
+})
 
 const hexes1only = hexes1.map((element) => element[0]);
 
@@ -903,7 +917,9 @@ module.exports = {
   items: items,
   services: services,
   items_fuse: items_fuse,
+  services_fuse: services_fuse,
   hexes1_fuse: hexes1_fuse,
-  items_cate_fuse: items_cate_fuse
+  items_cate_fuse: items_cate_fuse,
+  services_cate_fuse: services_cate_fuse
 }
 

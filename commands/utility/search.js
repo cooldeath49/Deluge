@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require("discord.js");
-const {hexes1, hexes1only, database, hexes1_fuse, items_fuse, items, items_cate_fuse } = require("../../storage.js");
+const {hexes1, hexes1only, database, hexes1_fuse, items_fuse, items, items_cate_fuse, services_cate_fuse, services_fuse } = require("../../storage.js");
 
 
 const data = new SlashCommandBuilder()
@@ -70,15 +70,28 @@ async function toEmbedSearch(item, section, facilities) {
         slice = fac[section][ind].arr.find((ele) => ele.name == item);
         if (hexes_strs[fac.hex]) { //already an entry for this hex
           if (hexes_strs[fac.hex][fac.town]) { //town has an entry
-            hexes_strs[fac.hex][fac.town] = hexes_strs[fac.hex][fac.town] + 
-            "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
+            if (section == "services") {
+              hexes_strs[fac.hex][fac.town] = hexes_strs[fac.hex][fac.town] + 
+            "\"" + fac.nickname + "\": " + slice.name + " - ID-" + fac.id + "\n";
+            } else {
+              hexes_strs[fac.hex][fac.town] = hexes_strs[fac.hex][fac.town] + 
+              "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
+            }
             //"Nickname": 500 Concrete, last updated 1 day ago - ID-38
           } else { //no town, initialize string
-            hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
+            if (section == "services") {
+              hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.name + " - ID-" + fac.id + "\n";
+            } else {
+              hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
+            }
           } 
         } else { //no hex entry
           hexes_strs[fac.hex] = {}; //initialize
-          hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
+          if (section == "services") {
+            hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.name + " - ID-" + fac.id + "\n";
+          } else {
+            hexes_strs[fac.hex][fac.town] = "\"" + fac.nickname + "\": " + slice.stock + " " + slice.name + ", *last updated <t:" + slice.date + ":R>* - ID-" + fac.id + "\n";
+          }
         }
       }
 
@@ -87,7 +100,7 @@ async function toEmbedSearch(item, section, facilities) {
 
   for (let hex in hexes_strs) {
     let embed = new EmbedBuilder()
-    .setTitle(hex + " Facilities");
+    .setTitle(hex);
     for (let town in hexes_strs[hex]) {
       embed.addFields({name: town, value: hexes_strs[hex][town], inline: true});
     }
@@ -116,32 +129,87 @@ module.exports = {
         let item;
         let fuse_item;
         let facilities;
+        let headerEmbed = new EmbedBuilder()
         if (subcmd == "imports" || subcmd == "exports") {
           item = interaction.options.getString("query");
-          fuse_item = items_cate_fuse.search(item);
-          console.log(item, fuse_item);
-          if (fuse_item.length > 0) {
-            if (Object.keys(items).indexOf(fuse_item[0].item) >= 0) {
+          let arr = items_cate_fuse.search(item);
+          console.log(arr);
+          if (arr.length > 0 && arr[0].score < 0.4) { //return was found
+            fuse_item = arr[0].item;
               //category search
-              facilities = await database.find({
-                imports: {
-                  category: fuse_item[0].item
-                }
-              }).toArray();
+              if (subcmd == "imports") {
+                facilities = await database.find({
+                  "imports.category" : fuse_item
+                }).toArray();
+              } else {
+                facilities = await database.find({
+                  "exports.category" : fuse_item
+                }).toArray();
+              }
+            
+            headerEmbed.setTitle("All Facilities with " + fuse_item + " " + subcmd.charAt(0).toUpperCase() + subcmd.substring(1));
+            headerEmbed.setDescription("Use /lookup for specific facility information");
+          
+          } else {
+            arr = items_fuse.search(item);
+            console.log(arr);
+            if (arr.length > 0 && arr[0].score < 0.4) { //return was found
+              fuse_item = arr[0].item;
+              //category search
+              if (subcmd == "imports") {
+                facilities = await database.find({
+                  "imports.arr.name" : fuse_item
+                }).toArray();
+              } else {
+                facilities = await database.find({
+                  "exports.arr.name" : fuse_item
+                }).toArray();
+              }
               console.log(facilities);
+              headerEmbed.setTitle("All Facilities with " + fuse_item + " " + subcmd.charAt(0).toUpperCase() + subcmd.substring(1));
+              headerEmbed.setDescription("Use /lookup for specific facility information");
+            
+            } else {
+              await interaction.followUp(item + " is not a valid query!");
+              return;
             }
           }
+        } else if (subcmd == "services") { //services
+          item = interaction.options.getString("query");
+          let arr = services_cate_fuse.search(item);
+          console.log(arr);
+          if (arr.length > 0 && arr[0].score < 0.4) { //return was found
+            fuse_item = arr[0].item;
+            facilities = await database.find({
+              "services.category" : fuse_item
+            }).toArray();
+            
+            headerEmbed.setTitle("All Facilities with " + fuse_item + " Upgrades");
+            headerEmbed.setDescription("Use /lookup for specific facility information");
           
+          } else {
+            arr = services_fuse.search(item);
+            console.log(arr);
+            if (arr.length > 0 && arr[0].score < 0.4) { //return was found
+              fuse_item = arr[0].item;
+              //category search
+              facilities = await database.find({
+                "services.arr.name" : fuse_item
+              }).toArray();
+              console.log(facilities);
+              headerEmbed.setTitle("All Facilities with " + fuse_item + " Upgrades");
+              headerEmbed.setDescription("Use /lookup for specific facility information");
+            
+            } else {
+              await interaction.followUp(item + " is not a valid query!");
+              return;
+            }
+          }
         }
-        let headerEmbed = new EmbedBuilder()
-        .setTitle("All Facilities")
-        .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
 
-
-        let embeds = await getHexEmbed(hexes1, facilities);
+        let embeds = await toEmbedSearch(fuse_item, subcmd, facilities);
 
         if (embeds.length > 4) {
-          let counter = 3;
           let embeds_length = Math.ceil(embeds.length / 4);
           let curr = 0;
           let embed_array = [embeds[0], embeds[1], embeds[2], embeds[3]];

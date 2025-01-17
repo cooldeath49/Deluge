@@ -14,6 +14,7 @@
     "@types/node": "^18.0.6",
     "discord.js": "^14.16.1",
     "foxhole-client": "^2.0.0",
+    "fuse": "^0.12.1",
     "fuse.js": "github:krisk/Fuse",
     "mongodb": "^6.12.0",
     "sharp": "^0.33.5",
