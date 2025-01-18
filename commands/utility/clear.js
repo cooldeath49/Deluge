@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require("discord.js");
 const {database} = require("../../storage.js");
 const data = new SlashCommandBuilder()
     .setName("clear")
