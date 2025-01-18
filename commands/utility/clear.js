@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder } = require("discord.js");
 const {database} = require("../../storage.js");
 const data = new SlashCommandBuilder()
     .setName("clear")
@@ -18,7 +18,6 @@ module.exports = {
             .setStyle(TextInputStyle.Short)
             .setRequired(true)
             .setMaxLength(30)
-    
     
             row = new ActionRowBuilder().addComponents(regimentinput)
     
