@@ -7,7 +7,6 @@ const data = new SlashCommandBuilder()
 module.exports = {
     data: data,
     async execute(interaction) {
-        await interaction.deferReply();
         if (interaction.user.id == "265180213783166976") {
             const modal = new ModalBuilder()
             .setCustomId("password")
@@ -41,9 +40,9 @@ module.exports = {
                     interaction.followUp("Failed to delete facilities");
                 }
                 
-            })
+            }).catch(e => interaction.followUp("failed"))
         } else {
-            interaction.followUp("deezn't");
+            interaction.reply("deezn't");
         }
     }
 }
