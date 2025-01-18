@@ -8,17 +8,18 @@ module.exports = {
     data: data,
     async execute(interaction) {
         if (interaction.user.id == "265180213783166976") {
-            const modal = new ModalBuilder()
+            let modal = new ModalBuilder()
             .setCustomId("password")
             .setTitle("Password")
 
-            let regimentinput = new TextInputBuilder()
+            let pwinput = new TextInputBuilder()
             .setCustomId("pw")
+            .setLabel("Enter password:")
             .setStyle(TextInputStyle.Short)
             .setRequired(true)
             .setMaxLength(30)
     
-            row = new ActionRowBuilder().addComponents(regimentinput)
+            let row = new ActionRowBuilder().addComponents(pwinput)
     
             modal.addComponents(row);
     
