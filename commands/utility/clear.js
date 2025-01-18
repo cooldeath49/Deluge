@@ -31,7 +31,7 @@ module.exports = {
             })
             .then(async submitted => {
                 if (!submitted.isModalSubmit() || submitted.customId != "password") return; 
-                if (submitted.fields.getTextInputValue("pw") != require("../../config.json").PASSWORD) {
+                if (submitted.fields.getTextInputValue("pw") != "eguled") {
                     interaction.followUp("Clear failed")
                 }
                 let result = await database.deleteMany({id: {$gte: 0}})
