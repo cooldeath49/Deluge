@@ -265,6 +265,7 @@ async function handleInteraction(interaction, fac) {
         if (!new_int.isModalSubmit() || new_int.customId != "new pw modal") return;
         let answer = new_int.fields.getTextInputValue("new pw");
         fac.password = answer;
+        fac.last = Math.floor(Date.now()/1000);
 
         let newfac = await add(fac);
   
@@ -283,7 +284,9 @@ async function handleInteraction(interaction, fac) {
       
     }
    } else if (interaction.customId == "no pw") {
+    fac.last = Math.floor(Date.now()/1000);
     let newfac = await add(fac);
+    
   
     if (newfac) {
       let embed2 = new EmbedBuilder()
@@ -643,6 +646,7 @@ module.exports = {
       services: null,
       choice: null, //internal use only
       _id: null,
+      last: null,
     }
 
     let response = await interaction.reply({

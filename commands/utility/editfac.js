@@ -646,6 +646,7 @@ async function handleInteraction(interaction, fac) {
     let footer = new EmbedBuilder()
       .setTitle("Finalized changes!")
 
+    fac.last = Math.floor(Date.now()/1000);
     await database.replaceOne({ id: fac.id }, fac);
 
     if (fac_arr.indexOf(fac.id) >= 0) {

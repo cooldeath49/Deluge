@@ -15,7 +15,8 @@ module.exports = {
         await interaction.deferReply();
         let id = interaction.options.getInteger('id');
         let fac = await database.findOne({id: id});
-
+        console.log(interaction);
+        console.log(interaction.user.id);
         if (fac) {
             console.log(fac);
             let embed = toEmbed(fac);

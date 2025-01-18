@@ -6,8 +6,10 @@ const {
 const {
   TOKEN,
   APPID,
+  DELUGE_TOKEN,
+  DELUGE_APPID
 } = require("./sensitive.js");
-const rest = new REST().setToken(TOKEN);
+let rest = new REST().setToken(TOKEN);
 const fs = require("node:fs");
 const path = require("node:path");
 const foldersPath = path.join(__dirname, "commands"); //Creates a path to the commands folder
@@ -34,9 +36,14 @@ for (const folder of cmdFolders) { //iterate through all folder
     console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
     // The put method is used to fully refresh all commands in the guild with the current set
-    const data = await rest.put(
+    const data = await new REST().setToken(TOKEN).put(
       // Routes.applicationGuildCommands(APPID, GUILDID),
       Routes.applicationCommands(APPID),
+      { body: commands },
+    );
+    const data2 = await new REST().setToken(DELUGE_TOKEN).put(
+      // Routes.applicationGuildCommands(APPID, GUILDID),
+      Routes.applicationCommands(DELUGE_APPID),
       { body: commands },
     );
 

@@ -4,12 +4,18 @@ let TOKEN;
 let uri;
 let APPID;
 let GUILDID;
+let DELUGE_TOKEN;
+let DELUGE_APPID;
+
+
 try {
   config = require("./config.json");
   TOKEN = config.TOKEN;
   APPID = config.APPID;
   GUILDID = config.GUILDID;
   uri = config.URL;
+  DELUGE_TOKEN = config.DELUGE_TOKEN;
+  DELUGE_APPID = config.DELUGE_APPID;
 } catch(error) {
   console.log("Detected running in Railway, using environment variables...");
   TOKEN = process.env.TOKEN;
@@ -25,4 +31,6 @@ module.exports = {
   APPID: APPID,
   GUILDID: GUILDID,
   uri: uri,
+  DELUGE_TOKEN: config.DELUGE_TOKEN,
+  DELUGE_APPID: config.DELUGE_APPID
 }

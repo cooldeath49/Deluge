@@ -628,8 +628,19 @@ function toEmbed(fac) {
     embed.addFields({name: "Regiment", value: "N/A", inline: true});
   }
   embed.addFields({name: "ID", value: fac.id.toString(), inline: true});
+  let update_str;
+  let calc = Math.floor(Date.now()/60000) - fac.last/60
+  if (calc >= 10080) {
+    update_str = "Last Updated: <t:" + fac.last + ":R> :red_circle:"
+  } else if (calc >= 4320) {
+    update_str = "Last Updated: <t:" + fac.last + ":R> :orange_circle:"
+  } else {
+    update_str = "Last Updated: <t:" + fac.last + ":R> :green_circle:"
+  }
   if (fac.password) {
-    embed.setDescription("This registration is password protected :lock:")
+    embed.setDescription("This registration is password protected :lock:\n" + update_str)
+  } else {
+    embed.setDescription(update_str)
   }
   embed.addFields(
     // { name: '\u200B', value: '\u200B' },

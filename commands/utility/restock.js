@@ -147,6 +147,7 @@ module.exports = {
                             }
                             in_slice.date = Math.floor(Date.now()/1000);
                             newEmbed.setDescription("New stock: " + in_slice.stock + " " + name);
+                            fac.last = Math.floor(Date.now()/1000);
                             await database.replaceOne({ id: fac.id }, fac);
 
                             await inter.update({components: [], embeds: toEmbed(fac).concat([newEmbed])});
