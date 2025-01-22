@@ -645,6 +645,8 @@ module.exports = {
       exports: null,
       services: null,
       choice: null, //internal use only
+      lookups: 0,
+      searches: 0,
       _id: null,
       last: null,
     }

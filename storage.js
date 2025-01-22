@@ -629,10 +629,10 @@ function toEmbed(fac) {
   }
   embed.addFields({name: "ID", value: fac.id.toString(), inline: true});
   let update_str;
-  let calc = Math.floor(Date.now()/60000) - fac.last/60
-  if (calc >= 10080) {
+  let calc = Math.floor(Date.now()/60000) - fac.last/60 //time in minutes
+  if (calc >= 5760) {
     update_str = "Last Updated: <t:" + fac.last + ":R> :red_circle:"
-  } else if (calc >= 4320) {
+  } else if (calc >= 2880) {
     update_str = "Last Updated: <t:" + fac.last + ":R> :orange_circle:"
   } else {
     update_str = "Last Updated: <t:" + fac.last + ":R> :green_circle:"

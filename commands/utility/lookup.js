@@ -15,11 +15,11 @@ module.exports = {
         await interaction.deferReply();
         let id = interaction.options.getInteger('id');
         let fac = await database.findOne({id: id});
-        console.log(interaction);
-        console.log(interaction.user.id);
         if (fac) {
-            console.log(fac);
             let embed = toEmbed(fac);
+            // fac.traffic.lookups++;
+            let response = await database.updateOne({id: id}, {$inc: {lookups: 1}});
+            console.log(response);
             await interaction.editReply({embeds: embed});
         } else {
             await interaction.editReply("No facility with id " + id + " could be found!");
