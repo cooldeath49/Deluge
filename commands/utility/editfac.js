@@ -96,8 +96,10 @@ async function returnProductionMenu(interaction, fac, selection, msg) {
     if (fac[selection].length == 0) {
       change.setCustomId("add cate " + selection);
     } else {
-      fac.choice = fac[selection][0][0];
+      fac.choice = fac[selection][0].category;
       console.log("set fac choice");
+      console.log(fac.choice);
+      console.log(fac[selection]);
     }
   }
 
