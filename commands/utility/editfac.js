@@ -4,7 +4,7 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   TextInputBuilder,
   TextInputStyle,
   Events, } = require('discord.js');
-const { client, database, hexes1, hexes1only, toEmbed, artilleryItems, letter_map, number_map, items, services } = require("../../storage.js");
+const { client, database, hexes1, hexes1only, hexes2, hexes2only, toEmbed, letter_map, number_map, items, services } = require("../../storage.js");
 
 let fac_arr = []; //stores id's of facilities being currently edited; IDs will be released once a command is finished
 
@@ -258,30 +258,75 @@ async function handleInteraction(interaction, fac) {
     // returnHomeMenu(interaction, fac, "Failed to edit owner's notes: no changes were made.");
 
 
-  } else if (interaction.customId == "location") {
+  } else if (interaction.customId == "location" || interaction.customId == "switch page 1") {
     let footer = new EmbedBuilder()
-      .setTitle("Select hex")
-      .setDescription("Select the hex your facility is built in.");
+    .setTitle("Select hex")
+    .setDescription("Select the hex your facility is built in.\nMost Northern hexes are on the first page. Most Southern hexes are on the second page.");
+
     let select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
-      .setPlaceholder('Select hex of your facility:')
+      .setPlaceholder('Select hex of your facility (page 1/2):')
       .addOptions(hexes1only.map((hex) => new StringSelectMenuOptionBuilder()
         .setLabel(hex)
         .setDescription(hex)
         .setValue(hex)
       ));
 
+      let other_page = new ButtonBuilder()
+      .setCustomId("switch page 2")
+      .setLabel("Switch Page")
+      .setStyle(ButtonStyle.Secondary);
+      
+
     let row = new ActionRowBuilder().addComponents(select);
-    // let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
+    let buttonrow = new ActionRowBuilder().addComponents(other_page);
 
     await interaction.update({
-      content: '',
-      components: [row],
+      content: "",
+      components: [row, buttonrow],
       embeds: [footer],
     });
+
+    //Paste coordinates
+  } else if (interaction.customId == "switch page 2") { //Switch to page 2
+    let footer = new EmbedBuilder()
+    .setTitle("Select hex")
+    .setDescription("Select the hex your facility is built in.\nMost Northern hexes are on the first page. Most Southern hexes are on the second page.");
+
+    let select = new StringSelectMenuBuilder()
+    .setCustomId('hex select')
+    .setPlaceholder('Select hex of your facility (page 2/2):')
+      .addOptions(hexes2only.map(hex => new StringSelectMenuOptionBuilder()
+        .setLabel(hex)
+        .setDescription(hex)
+        .setValue(hex)
+      )
+      );
+      let other_page = new ButtonBuilder()
+      .setCustomId("switch page 1")
+      .setLabel("Switch Page")
+      .setStyle(ButtonStyle.Secondary);
+
+    row = new ActionRowBuilder().addComponents(select);
+    buttonrow = new ActionRowBuilder().addComponents(other_page);
+
+     await interaction.update({
+      content: "",
+      components: [row, buttonrow],
+      embeds: [footer],
+    });
+
+  } else if (interaction.customId == "cancel") {
+    await interaction.update({
+      content: 'Interaction cancelled!',
+      components: [],
+    });
+
+    //Selection made for hex, string select
   } else if (interaction.customId == "hex select") {
     fac.hex = interaction.values[0];
-    let chunk = JSON.parse(JSON.stringify(hexes1.find((chunk) => chunk[0] == fac.hex)));
+
+    let chunk = JSON.parse(JSON.stringify(hexes1.find((chunk) => chunk[0] == fac.hex) ?? hexes2.find((chunk) => chunk[0] == fac.hex)));
     chunk.shift();
     let select = new StringSelectMenuBuilder()
       .addOptions(chunk.map((town) => new StringSelectMenuOptionBuilder()
@@ -294,8 +339,8 @@ async function handleInteraction(interaction, fac) {
       ;
 
     let footer = new EmbedBuilder()
-      .setTitle("Select town")
-      .setDescription("Select the town your facility is built in.");
+    .setTitle("Select town")
+    .setDescription("Select the town your facility is built in.");
 
     row = new ActionRowBuilder().addComponents(select);
     await interaction.update({
@@ -304,7 +349,7 @@ async function handleInteraction(interaction, fac) {
     });
 
     //Selection made for town
-  } else if (interaction.customId == "town select") {
+  }  else if (interaction.customId == "town select") {
     fac.town = interaction.values[0];
     let select = new StringSelectMenuBuilder()
       .addOptions(letter_map.map((letter) => new StringSelectMenuOptionBuilder()

@@ -32,15 +32,7 @@ const client = new Client({
   global_id = counter.global_id;
   console.log("Storage finished initializing asynchronous data!");
 })();
-/*
-0: The Linn of Mercy
-1: The Deadlands
-2: Marban Hollow
-3: Farranac Coast
-*/
 
-//Given a set of parameters, adds a facility to the list and returns its object
-// var hexes2 = [];
 const hexes1 = [
   ["Linn of Mercy", 
     "The Long Whine",
@@ -282,6 +274,196 @@ const hexes1 = [
 ];
 
 
+const hexes2 = [
+  ["Loch Mor",
+    "Westmarch",
+    "Mercy's Wish",
+    "Moon's Copse",
+    "The Roilfort",
+    "Feirmor",
+    "Market Road",
+    "Tomb of the First",
+  ],
+  ["The Drowned Vale",
+  "The Baths",
+  "Bootnap",
+  "Singing Serpents",
+  "The Saltcaps",
+  "Loggerhead",
+  "Wisp's Warning",
+  "Eastmarch",
+  "The Wash",
+  "Vessel",
+  "Splinter Pens",
+  "Coaldrifter Stead"
+  ],
+  ["Endless Shore",
+    "Saltbrook Channel",
+    "Wellchurch",
+    "Sidhe Fall",
+    "Tuatha Watchpost",
+    "Woodbind",
+    "The Overland",
+    "Iron Junction",
+    "Enduring Wake",
+    "Brackish Point",
+    "The Old Jack Tar"
+  ], 
+  [
+    "Stema Landing",
+    "Acies Overlook",
+    "The Spearhead",
+    "Base Sagitta",
+    "Base Ferveret",
+    "The Wane",
+    "Alchimio Estate",
+    "Verge Wing",
+    "Ustio",
+    "The Flair"
+  ],
+  ["Sableport",
+    "Barronhome",
+    "The Robin's Nest",
+    "The Pendant",
+    "Cinderwick",
+    "The Whetstone",
+    "Light's End",
+    "Talonsfort"
+  ],
+  ["Umbral Wildwood",
+    "Thunderfoot",
+    "Clotho's Refuge",
+    "Stray",
+    "Vagrant Bastion",
+    "The Foundry",
+    "Goldenroot Ranch",
+    "Sentry",
+    "Atropos' Fate",
+    "Hermit's Rest",
+    "Lachesis' Tally",
+    "Amethyst",
+  ],
+  ["Allod's Bight",
+    "Mercy's Wail",
+    "The Stone Plank",
+    "Homesick",
+    "Scurvyshire",
+    "Rumhold",
+    "Belaying Trace",
+    "The Turncoat"
+  ],
+  ["The Fingers",
+    "The Old Captain",
+    "Titancall",
+    "Tethys Base",
+    "Fort Barley",
+    "Plankhouse",
+    "Second Man",
+    "Headsman's Villa",
+    "The Tusk",
+    "Captain's Dread"  
+  ],
+  ["Origin",
+    "The Steel Road",
+    "Arise",
+    "Initium",
+    "Dormio",
+    "World Star",
+    "Teichotima",
+    "Finis"
+  ],
+  ["The Heartlands",
+    "The Blemish",
+    "Oleander Homestead",
+    "Fort Providence",
+    "Greenfield Orchard",
+    "Proexi",
+    "Deeplaw Post",
+    "The Breach",
+    "Barronswall",
+    "Barrony Ranch",
+    "The Plough"
+  ],
+  ["Shackled Chasm",
+    "Silk Farms",
+    "The Vanguard",
+    "Simo's Run",
+    "The Bell Toll",
+    "Firstmarch",
+    "Limewood Holdfast",
+    "Savages",
+    "Gorgon Grove",
+    "Reflection",
+    "The Grave of Erastos"
+  ],
+  ["Reaver's Pass",
+    "Keelhaul",
+    "Clay Coffer",
+    "Thimbre Base",
+    "Scuttletown",
+    "Fort Rictus",
+    "The Bilge",
+    "Breakwater"
+  ],
+  ["Ash Fields",
+    "Ashtown",
+    "The Ashfort",
+    "Sootflow",
+    "Electi",
+    "Camp Omega",
+    "Cometa",
+    "The Calamity"  
+  ],
+  ["Great March",
+    "Sitaria",
+    "Myrmidon's Stay",
+    "Dendro Field",
+    "Remnant Villa",
+    "The Swan",
+    "Leto",
+    "Camp Senti",
+    "Violethome",
+    "Lionsfort"
+  ],
+  ["Terminus",
+    "Therizo",
+    "Bloody Palm Fort",
+    "Winding Bolas",
+    "Warlord's Stead",
+    "Cerberus Wake",
+    "Thunderbolt",
+  ],
+  ["Red River",
+    "Cannonsmoke",
+    "Victoria Hill",
+    "Judicium",
+    "Fort Matchwood",
+    "Minos",
+    "Climb",
+    "Penance",
+    "Camp Upsilon",
+  ],
+  ["Acrithia",
+    "Patridia",
+    "The Brinehold",
+    "Legion Ranch",
+    "Nereid Keep",
+    "Camp Omicron",
+    "Heir Apparent",
+    "Swordfort",
+    "Thetus Ring",
+  ],
+  ["Kalokai",
+    "Baccae Ridge",
+    "Camp Tau",
+    "Lost Greensward",
+    "Night's Regret",
+    "Hallow",
+    "Sourtooth",
+    "Sweethearth"
+  ]
+]
+
 const items = {
   "Primitive Resources": 
   ["Scrap", 
@@ -461,6 +643,7 @@ const services_cate_fuse = new Fuse(Object.keys(services), {
 })
 
 const hexes1only = hexes1.map((element) => element[0]);
+const hexes2only = hexes2.map((element) => element[0]);
 
 const hexes1_fuse = new Fuse(hexes1only, {
   shouldSort: true,
@@ -742,174 +925,7 @@ const keypad_map = [
   1, 2, 3, 4, 5, 6, 7, 8, 9,
 ]
 
-const testhex = [
-  {
-    label: "Speaking Woods",
-    description: "Speaking Woods",
-    value: "Speaking Woods",
-  },
-  {
-    label: "Basin Sionnach",
-    description: "Basin Sionnach",
-    value: "Basin Sionnach",
-  },
-  {
-    label: "Viper Pit",
-    description: "Viper Pit",
-    value: "Viper Pit",
-  },
-  {
-    label: "Morgens Crossing",
-    description: "Morgens Crossing",
-    value: "Morgens Crossing",
-  },
-  {
-    label: "Oarbreaker Isles",
-    description: "Oarbreaker Isles",
-    value: "Oarbreaker Isles",
-  },
-  {
-    label: "Stonecradle",
-    description: "Stonecradle",
-    value: "Stonecradle",
-  },
-  {
-    label: "Callahans Passage",
-    description: "Callahans Passage",
-    value: "Callahans Passage",
-  },
-  {
-    label: "Weathered Expanse",
-    description: "Weathered Expanse",
-    value: "Weathered Expanse",
-  },
-  {
-    label: "Godcrofts",
-    description: "Godcrofts",
-    value: "Godcrofts",
-  },
-  {
-    label: "Stlican Shelf",
-    description: "Stlican Shelf",
-    value: "Stlican Shelf",
-  },
-  {
-    label: "Fishermans Row",
-    description: "Fishermans Row",
-    value: "Fishermans Row",
-  },
-  {
-    label: "Kings Cage",
-    description: "Kings Cage",
-    value: "Kings Cage",
-  },
-  {
-    label: "The Clahstra",
-    description: "The Clahstra",
-    value: "The Clahstra",
-  },
-  {
-    label: "Tempest Island",
-    description: "Tempest Island",
-    value: "Tempest Island",
-  },
-  {
-    label: "Westgate",
-    description: "Westgate",
-    value: "Westgate",
-  },
-]
-const hexes2 = [{
-  label: "Loch Mor",
-  description: "Loch Mor",
-  value: "Loch Mor",
-},
-{
-  label: "The Drowned Vale",
-  description: "The Drowned Vale",
-  value: "The Drowned Vale",
-},
-{
-  label: "Endless Shore",
-  description: "Endless Shore",
-  value: "Endless Shore",
-},
-{
-  label: "Stema Landing",
-  description: "Stema Landing",
-  value: "Stema Landing",
-},
-{
-  label: "Sableport",
-  description: "Sableport",
-  value: "Sableport",
-},
-{
-  label: "Umbral Wildwood",
-  description: "Umbral Wildwood",
-  value: "Umbral Wildwood",
-},
-{
-  label: "Allods Bight",
-  description: "Allods Bight",
-  value: "Allods Bight",
-},
-{
-  label: "The Fingers",
-  description: "The Fingers",
-  value: "The Fingers",
-},
-{
-  label: "Origin",
-  description: "Origin",
-  value: "Origin",
-},
-{
-  label: "The Heartlands",
-  description: "The Heartlands",
-  value: "The Heartlands",
-},
-{
-  label: "Shackled Chasm",
-  description: "Shackled Chasm",
-  value: "Shackled Chasm",
-},
-{
-  label: "Reavers Pass",
-  description: "Reavers Pass",
-  value: "Reavers Pass",
-},
-{
-  label: "Ash Fields",
-  description: "Ash Fields",
-  value: "Ash Fields",
-},
-{
-  label: "Great March",
-  description: "Great March",
-  value: "Great March",
-},
-{ 
-  label: "Terminus",
-  description: "Terminus",
-  value: "Terminus",
-},
-{
-  label: "Red River",
-  description: "Red River",
-  value: "Red River",
-},
-{
-  label: "Acrithia",
-  description: "Acrithia",
-  value: "Acrithia",
-},
-{
-  label: "Kalokai",
-  description: "Kalokai",
-  value: "Kalokai",
-},
-]
+
 
 module.exports = {
   add: add,
@@ -918,6 +934,7 @@ module.exports = {
   hexes1: hexes1,
   hexes1only: hexes1only,
   hexes2: hexes2,
+  hexes2only: hexes2only,
   number_map: number_map,
   letter_map: letter_map,
   keypad_map: keypad_map,

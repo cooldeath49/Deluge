@@ -3,16 +3,12 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Modal
   Events,
 
 } = require('discord.js');
-const {client, hexes1, hexes2, add, toEmbed, letter_map, number_map, hexes1only, items, services} = require('../../storage.js');
+const {client, hexes1, hexes2, add, toEmbed, letter_map, number_map, hexes1only, hexes2only, items, services} = require('../../storage.js');
 
 const data = new SlashCommandBuilder()
   .setName("addfac")
   .setDescription("Register a facility with the bot")
 
-let other_page = new ButtonBuilder()
-  .setCustomId("switch page 1")
-  .setLabel("Switch Page")
-  .setStyle(ButtonStyle.Secondary);
 let cancel = new ButtonBuilder()
   .setCustomId("cancel")
   .setLabel("Cancel")
@@ -58,23 +54,25 @@ async function handleInteraction(interaction, fac) {
   } else if (interaction.customId == "add" || interaction.customId == "switch page 1") {
     let footer = new EmbedBuilder()
     .setTitle("Select hex")
-    .setDescription("Select the hex your facility is built in.");
+    .setDescription("Select the hex your facility is built in.\nMost Northern hexes are on the first page. Most Southern hexes are on the second page.");
 
     let select = new StringSelectMenuBuilder()
       .setCustomId('hex select')
-      .setPlaceholder('Select hex of your facility:')
+      .setPlaceholder('Select hex of your facility (page 1/2):')
       .addOptions(hexes1only.map((hex) => new StringSelectMenuOptionBuilder()
         .setLabel(hex)
         .setDescription(hex)
         .setValue(hex)
       ));
 
+      let other_page = new ButtonBuilder()
+      .setCustomId("switch page 2")
+      .setLabel("Switch Page")
+      .setStyle(ButtonStyle.Secondary);
       
-    other_page.setCustomId("switch page 1");
 
     let row = new ActionRowBuilder().addComponents(select);
-    // let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
-    let buttonrow = new ActionRowBuilder().addComponents(cancel);
+    let buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
 
     await interaction.update({
       content: "",
@@ -83,42 +81,34 @@ async function handleInteraction(interaction, fac) {
     });
 
     //Paste coordinates
-  } else if (interaction.customId == "switch page 1") { //switch to the second page
+  } else if (interaction.customId == "switch page 2") { //Switch to page 2
+    let footer = new EmbedBuilder()
+    .setTitle("Select hex")
+    .setDescription("Select the hex your facility is built in.\nMost Northern hexes are on the first page. Most Southern hexes are on the second page.");
+
     let select = new StringSelectMenuBuilder()
-      .addOptions(hexes2.map((hex) => new StringSelectMenuOptionBuilder()
-        .setLabel(hex.label)
-        .setDescription(hex.description)
-        .setValue(hex.value)
-      )
-      );
-    other_page.setCustomId("switch page 2");
-
-    row = new ActionRowBuilder().addComponents(select);
-    // buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
-    let buttonrow = new ActionRowBuilder().addComponents(cancel);
-
-    await interaction.update({
-      content: 'Choose your facility hex (page 2/2):',
-      components: [row, buttonrow],
-    });
-
-  } else if (interaction.customId == "switch page 2") { //Switch to page 1
-    let select = new StringSelectMenuBuilder()
-      .addOptions(hexes1only.map(hex => new StringSelectMenuOptionBuilder()
+    .setCustomId('hex select')
+    .setPlaceholder('Select hex of your facility (page 2/2):')
+      .addOptions(hexes2only.map(hex => new StringSelectMenuOptionBuilder()
         .setLabel(hex)
         .setDescription(hex)
         .setValue(hex)
       )
       );
-    other_page.setCustomId("switch page 1");
+      let other_page = new ButtonBuilder()
+      .setCustomId("switch page 1")
+      .setLabel("Switch Page")
+      .setStyle(ButtonStyle.Secondary);
 
     row = new ActionRowBuilder().addComponents(select);
     buttonrow = new ActionRowBuilder().addComponents(other_page, cancel);
 
-    await interaction.update({
-      content: 'Choose your facility hex (page 1/2):',
+     await interaction.update({
+      content: "",
       components: [row, buttonrow],
+      embeds: [footer],
     });
+
   } else if (interaction.customId == "cancel") {
     await interaction.update({
       content: 'Interaction cancelled!',
@@ -128,7 +118,8 @@ async function handleInteraction(interaction, fac) {
     //Selection made for hex, string select
   } else if (interaction.customId == "hex select") {
     fac.hex = interaction.values[0];
-    let chunk = JSON.parse(JSON.stringify(hexes1.find((chunk) => chunk[0] == fac.hex)));
+
+    let chunk = JSON.parse(JSON.stringify(hexes1.find((chunk) => chunk[0] == fac.hex) ?? hexes2.find((chunk) => chunk[0] == fac.hex)));
     chunk.shift();
     let select = new StringSelectMenuBuilder()
       .addOptions(chunk.map((town) => new StringSelectMenuOptionBuilder()
