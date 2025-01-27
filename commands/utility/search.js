@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require("discord.js");
-const { hexes1, hexes1only, database, hexes1_fuse, items_fuse, items, items_cate_fuse, services_cate_fuse, services_fuse } = require("../../storage.js");
+const {database, allhexes_fuse, items_fuse, items_cate_fuse, services_cate_fuse, services_fuse } = require("../../storage.js");
 
 
 const data = new SlashCommandBuilder()
@@ -103,8 +103,8 @@ module.exports = {
       let type;
       let curr_score = 1;
       if (target) {
-        let fused_target = hexes1_fuse.search(target);
-        if (fused_target.length > 0 && hexes1only.indexOf(fused_target[0].item) >= 0) {
+        let fused_target = allhexes_fuse.search(target);
+        if (fused_target.length > 0) {
           target_hex = fused_target[0].item;
         }
         options["hex"] = target_hex;
@@ -202,7 +202,7 @@ module.exports = {
 
           let buttoncollector = response.createMessageComponentCollector({
             componentType: ComponentType.Button,
-            time: 60_000,
+            time: 360_000,
             filter: i => i.user.id === interaction.user.id,
           })
           buttoncollector.on('collect', async int => {

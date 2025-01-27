@@ -249,7 +249,7 @@ async function handleInteraction(interaction, fac) {
       await interaction.showModal(modal);
 
       interaction.awaitModalSubmit({
-        time: 60_000,
+        time: 360_000,
         filter: i => i.user.id === interaction.user.id,
       })
       .then(async new_int => {
@@ -382,7 +382,7 @@ async function handleInteraction(interaction, fac) {
       await interaction.showModal(modal);
 
       interaction.awaitModalSubmit({
-        time: 60_000,
+        time: 360_000,
         filter: i => i.user.id === interaction.user.id,
       })
       .then(async submitted => {
@@ -560,7 +560,7 @@ async function handleInteraction(interaction, fac) {
       await interaction.showModal(modal);
   
       interaction.awaitModalSubmit({
-        time: 60_000,
+        time: 360_000,
         filter: i => i.user.id === interaction.user.id,
       })
       .then(async new_int => {

@@ -83,7 +83,7 @@ module.exports = {
                     
                         await response.awaitMessageComponent({
                             filter: i => i.user.id === interaction.user.id,
-                            time: 60_000
+                            time: 360_000
                         }).then(async inter => {
                             if (inter.customId == "imports") {
                                 slice = import_slice;
@@ -126,7 +126,7 @@ module.exports = {
 
                     await response.awaitMessageComponent({
                         filter: i => i.user.id === interaction.user.id,
-                        time: 60_000
+                        time: 360_000
                     }).then(async inter => {
                         if (inter.customId == "no") {
                             let newEmbed = new EmbedBuilder()

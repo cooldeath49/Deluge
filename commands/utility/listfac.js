@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require("discord.js");
-const {hexes1, hexes1only, database, hexes1_fuse} = require("../../storage.js");
+const {hexes1, database, hexes2, allhexes_fuse} = require("../../storage.js");
 
 const data = new SlashCommandBuilder()
   .setName("listfac")
@@ -71,7 +71,10 @@ module.exports = {
         .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
 
 
-        let embeds = await getHexEmbed(hexes1, facilities);
+        let embeds1 = await getHexEmbed(hexes1, facilities);
+        let embeds2 = await getHexEmbed(hexes2, facilities);
+
+        let embeds = embeds1.concat(embeds2);
 
         if (embeds.length > 4) {
           let counter = 3;
@@ -93,7 +96,7 @@ module.exports = {
             
           let buttoncollector = response.createMessageComponentCollector({
             componentType: ComponentType.Button,
-            time: 60_000,
+            time: 360_000,
             filter: i => i.user.id === interaction.user.id,
           })
           buttoncollector.on('collect', async int => {
@@ -135,8 +138,8 @@ module.exports = {
         }
 
       } else {
-        let fused_target = hexes1_fuse.search(target);
-        if (fused_target.length > 0 && hexes1only.indexOf(fused_target[0].item) >= 0) {
+        let fused_target = allhexes_fuse.search(target);
+        if (fused_target.length > 0) {
           let found = fused_target[0].item;
 
           let embeds = await getHexEmbed([[found]], facilities);

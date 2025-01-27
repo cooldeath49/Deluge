@@ -1032,7 +1032,7 @@ module.exports = {
   
         let buttoncollector = response.createMessageComponentCollector({
           componentType: ComponentType.Button,
-          time: 60_000,
+          time: 360_000,
           filter: i => i.user.id === interaction.user.id,
         })
         buttoncollector.on('collect', async i2 => {
@@ -1043,7 +1043,7 @@ module.exports = {
   
         let stringcollector = response.createMessageComponentCollector({
           componentType: ComponentType.StringSelect,
-          time: 60_000,
+          time: 360_000,
           filter: i => i.user.id === interaction.user.id,
         })
         
