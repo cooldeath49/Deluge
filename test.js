@@ -1,79 +1,77 @@
-let data;
-
-async function a() {
-  data = await (await fetch("https://war-service-live.foxholeservices.com/api/worldconquest/maps/DeadLandsHex/dynamic/public")).json();
-  // asd = data.mapItems;
-}
-
-a();
-
 // console.log(asd);
 // console.log(data);
-
-  const path = require("path");
+const path = require("path");
 const sharp = require("sharp");
 
 function toPixelDistance(pos) {
   if (pos.isApi) {
     return {
-      top: pos.y * 1776,
-      left: pos.x * 2048
+      top: parseInt(pos.y * 1776),
+      left: parseInt(pos.x * 2048)
     }
   } else if (pos.isGrid) { //x is normal, y is inverted
     return {
-      top: pos.y * 125 * 1776/1875,
-      left: pos.x * 125 * 2048/2125
+      top: parseInt(pos.y * 125 * 1776/1875),
+      left: parseInt(pos.x * 125 * 2048/2125)
     }
   }
 }
 
 let position = {
-  x: 5,
+  x: 10,
   y: 5,
   isGrid: true
 }
 
-console.log(toPixelDistance(position));
+let dist = toPixelDistance(position);
+console.log(dist);
+
+// console.log(toPixelDistance(position));
 
 // Combine the base image and the text image
 
 // Define the base image path
-const markerPath = path.resolve('marker1.png');
+const marker = sharp(path.resolve('marker1.png'));
 const hexPath = path.resolve("HexImages", "MapAcrithiaHex.png")
 
 // Create the text image
 
 async function makeImage() {
-  const meta = await sharp("marker1.png").metadata();
+  let data = await (await fetch("https://war-service-live.foxholeservices.com/api/worldconquest/maps/DeadLandsHex/dynamic/public")).json();
+
+  // console.log(data.mapItems)
+
+  for (let item in data.mapItems) {
+    console.log(data.mapItems[item].iconType)
+  }
+
   // console.log(meta);
-  const digit = await sharp({
+  const digit = sharp({
     text: {
-      text: "12",
+      text: "0",
       align: 'center',
       rgba: true,
       font: '50px',
       // fontfile: ITALIC_FONT
     },
-  });
-  console.log(digit)
-  const marker = await sharp(markerPath);
-  
-  const digit_meta = await sharp(digit).metadata();
-  const marker_meta = await marker.metadata();
-  // const meta2 = await mapText.metadata();
+  }).png();
+  // console.log(digit)
+  // const marker_template = sharp(markerPath);
 
-  const markersharp = marker
+  marker
   .composite([{ 
     input: await digit.toBuffer(), top: 25, 
-    left: parseInt(marker_meta.width/2 - digit_meta.width/2) 
+    left: parseInt((await marker.metadata()).width/2 - (await digit.metadata()).width/2) 
   }])
-  .toFile("test.png");
+  .png();
     
-/*
-  const png2 = await sharp(hexPath)
+
+  sharp(hexPath)
   .composite([{
-    input: await markersharp.toBuffer()
-  }]).toFile("sus.png");*/
+    input: await marker.toBuffer(),
+    left: dist.left,
+    top: dist.top
+  }]).toFile("sus.png");
 
   // console.log(meta2);
  
