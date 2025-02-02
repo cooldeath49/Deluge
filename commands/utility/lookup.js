@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const {toEmbed, database} = require("../../storage.js");
+const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } = require("discord.js");
+const {toEmbed, database, createHexImage} = require("../../storage.js");
 const data = new SlashCommandBuilder()
     .setName("lookup")
     .setDescription("Lookup specific details about a facility given an id")
@@ -17,10 +17,10 @@ module.exports = {
         let fac = await database.findOne({id: id});
         if (fac) {
             let embed = toEmbed(fac);
-            // fac.traffic.lookups++;
-            let response = await database.updateOne({id: id}, {$inc: {lookups: 1}});
-            console.log(response);
-            await interaction.editReply({embeds: embed});
+            await database.updateOne({id: id}, {$inc: {lookups: 1}});
+            let buffer = await createHexImage([fac], fac.hex);
+            let file = new AttachmentBuilder(buffer);
+            await interaction.editReply({embeds: embed, files: [file]});
         } else {
             await interaction.editReply("No facility with id " + id + " could be found!");
         }

@@ -2,6 +2,7 @@
 // console.log(data);
 const path = require("path");
 const sharp = require("sharp");
+const fs = require("fs");
 
 function toPixelDistance(pos) {
   if (pos.isApi) {
@@ -25,6 +26,7 @@ let position = {
 
 let dist = toPixelDistance(position);
 console.log(dist);
+let {makeImage} = require("./storage.js");
 
 // console.log(toPixelDistance(position));
 
@@ -32,49 +34,64 @@ console.log(dist);
 
 // Define the base image path
 const marker = sharp(path.resolve('marker1.png'));
-const hexPath = path.resolve("HexImages", "MapAcrithiaHex.png")
+const hexPath = path.resolve("HexImages", "Acrithia.png")
 
 // Create the text image
 
-async function makeImage() {
-  let data = await (await fetch("https://war-service-live.foxholeservices.com/api/worldconquest/maps/DeadLandsHex/dynamic/public")).json();
+// async function makeImage() {
+//   let data = await (await fetch("https://war-service-live.foxholeservices.com/api/worldconquest/maps/DeadLandsHex/dynamic/public")).json();
 
-  // console.log(data.mapItems)
+//   // console.log(data.mapItems)
 
-  for (let item in data.mapItems) {
-    console.log(data.mapItems[item].iconType)
-  }
+//   for (let item in data.mapItems) {
+//     // console.log(data.mapItems[item].iconType)
+//   }
 
-  // console.log(meta);
-  const digit = sharp({
-    text: {
-      text: "0",
-      align: 'center',
-      rgba: true,
-      font: '50px',
-      // fontfile: ITALIC_FONT
-    },
-  }).png();
-  // console.log(digit)
-  // const marker_template = sharp(markerPath);
+//   // console.log(meta);
+//   const digit = sharp({
+//     text: {
+//       text: "0",
+//       align: 'center',
+//       rgba: true,
+//       font: '50px',
+//       // fontfile: ITALIC_FONT
+//     },
+//   }).png();
+//   // console.log(digit)
+//   // const marker_template = sharp(markerPath);
 
-  marker
-  .composite([{ 
-    input: await digit.toBuffer(), top: 25, 
-    left: parseInt((await marker.metadata()).width/2 - (await digit.metadata()).width/2) 
-  }])
-  .png();
+//   marker
+//   .composite([{ 
+//     input: await digit.toBuffer(), top: 25, 
+//     left: parseInt((await marker.metadata()).width/2 - (await digit.metadata()).width/2) 
+//   }])
+//   .png();
     
 
-  sharp(hexPath)
-  .composite([{
-    input: await marker.toBuffer(),
-    left: dist.left,
-    top: dist.top
-  }]).toFile("sus.png");
+//   sharp(hexPath)
+//   .composite([{
+//     input: await marker.toBuffer(),
+//     left: dist.left,
+//     top: dist.top
+//   }]).toFile("sus.png");
 
-  // console.log(meta2);
+//   // console.log(meta2);
  
-}
-makeImage();
+// }
+// makeImage();
 
+// console.log(hexes1only);
+
+let arr = [
+  {
+    pos: {
+      x: 10,
+      y: 7,
+      type: "Grid"
+    },
+    id: 4
+  },
+
+
+]
+makeImage(arr, "The Drowned Vale")

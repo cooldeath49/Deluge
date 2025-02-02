@@ -7,7 +7,18 @@ const Fuse = require("fuse.js");
 const mongo_client = new MongoClient(uri);
 const database = mongo_client.db("facilities").collection("facilities");
 let global_id = 0;
-
+const path = require("path");
+const sharp = require("sharp");
+const fs = require("fs");
+const letter_map = [
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
+]
+const number_map = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+]
+const keypad_map = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9,
+]
 
 const client = new Client({
   intents: [
@@ -32,6 +43,76 @@ const client = new Client({
   global_id = counter.global_id;
   console.log("Storage finished initializing asynchronous data!");
 })();
+
+function gridToCoordinates(letter, number) {
+  return {
+    x: letter_map.indexOf(letter), 
+    y: number_map.indexOf(parseInt(number)),
+    type: "Grid"
+  }
+}
+
+function toPixelDistance(pos) {
+  if (pos.type == "API") {
+    return {
+      top: parseInt(pos.y * 1776),
+      left: parseInt(pos.x * 2048)
+    }
+  } else if (pos.type == "Grid") { //x is normal, y is inverted
+    return {
+      top: parseInt(pos.y * 125 * 1776/1875),
+      left: parseInt(pos.x * 125 * 2048/2125)
+    }
+  }
+}
+
+//arr is an array of objects containing id and pos
+//pos is an object with x, y and type
+async function makeImage(arr, hex) {
+  let hexPath = path.resolve("HexImages", hex + ".png");
+  let sharp_hex = sharp(hexPath);
+  let comp_arr = [];
+  
+
+  for (let obj in arr) {
+    let marker = sharp(path.resolve('marker1.png'));
+    let pos = toPixelDistance(arr[obj].pos);
+    console.log(pos);
+    let digit = sharp({ //instantiate sharp digit
+      text: {
+        text: arr[obj].id.toString(),
+        align: 'center',
+        rgba: true,
+        font: '50px',
+      },
+    }).png();
+
+    marker.composite([{ 
+      input: await digit.toBuffer(), 
+      left: parseInt((await marker.metadata()).width/2 - (await digit.metadata()).width/2),
+      top: 25, 
+    }]).png();
+
+    
+    comp_arr.push(
+      {
+        input: await marker.toBuffer(),
+        left: pos.left,
+        top: pos.top,
+        premultiplied: true
+      }
+    )
+  }
+  
+  return sharp_hex.composite(comp_arr).toBuffer();
+}
+// returns filename to image
+async function createHexImage(facs, hex) {
+  return await makeImage(facs.map((fac) => {return {
+    pos: gridToCoordinates(fac.letter, fac.number),
+    id: fac.id
+  }}), hex);
+}
 
 const hexes1 = [
   ["Linn of Mercy", 
@@ -922,18 +1003,6 @@ function toEmbed(fac) {
   return embeds;
 }
 
-const letter_map = [
-  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
-]
-const number_map = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-]
-const keypad_map = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9,
-]
-
-
-
 module.exports = {
   add: add,
   toEmbed: toEmbed,
@@ -956,6 +1025,8 @@ module.exports = {
   hexes1_fuse: hexes1_fuse,
   allhexes_fuse: allhexes_fuse,
   items_cate_fuse: items_cate_fuse,
-  services_cate_fuse: services_cate_fuse
+  services_cate_fuse: services_cate_fuse,
+  makeImage: makeImage,
+  createHexImage: createHexImage
 }
 
