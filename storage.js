@@ -84,6 +84,7 @@ async function makeImage(arr, hex) {
         align: 'center',
         rgba: true,
         font: '50px',
+        fontfile: "./ARIAL.TTF"
       },
     }).png();
 
