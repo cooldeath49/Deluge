@@ -2,9 +2,9 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   EmbedBuilder, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder,
   ModalBuilder,
   TextInputBuilder,
-  TextInputStyle,
+  TextInputStyle, AttachmentBuilder,
   Events, } = require('discord.js');
-const { client, database, hexes1, hexes1only, hexes2, hexes2only, toEmbed, letter_map, number_map, items, services } = require("../../storage.js");
+const { client, database, hexes1, hexes1only, hexes2, hexes2only, toEmbed, letter_map, number_map, items, services, createHexImage} = require("../../storage.js");
 
 let fac_arr = []; //stores id's of facilities being currently edited; IDs will be released once a command is finished
 
@@ -1010,6 +1010,10 @@ module.exports = {
     let fac = await database.findOne({ id: id });
     if (fac) { //facility found
       if (fac_arr.indexOf(id) == -1) {
+
+        let buffer = await createHexImage([fac], fac.hex);
+        let file = new AttachmentBuilder(buffer);
+
         fac_arr.push(id);
         let embed = toEmbed(fac);
         let yes = new ButtonBuilder()
@@ -1028,7 +1032,7 @@ module.exports = {
         let embed2 = new EmbedBuilder()
           .setTitle("Is this the facility you want to edit?");
   
-        let response = await interaction.followUp({ content: "", components: [row], embeds: embed.concat([embed2]) });
+        let response = await interaction.followUp({ content: "", components: [row], embeds: embed.concat([embed2]), files: [file] });
   
         let buttoncollector = response.createMessageComponentCollector({
           componentType: ComponentType.Button,

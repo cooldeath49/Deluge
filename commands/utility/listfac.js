@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require("discord.js");
-const {hexes1, database, hexes2, allhexes_fuse} = require("../../storage.js");
+const { SlashCommandBuilder, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType, AttachmentBuilder } = require("discord.js");
+const {hexes1, database, hexes2, allhexes_fuse, createHexImage} = require("../../storage.js");
 
 const data = new SlashCommandBuilder()
   .setName("listfac")
@@ -63,9 +63,9 @@ module.exports = {
       interaction.followUp("No facilities have been registered!");
       return;
     } else {
-      let facilities = await database.find().toArray();
       let target = interaction.options.getString('hex');
       if (!target) { //No target specified, load all facilities
+        let facilities = await database.find().toArray();
         let headerEmbed = new EmbedBuilder()
         .setTitle("All Facilities")
         .setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
@@ -141,11 +141,14 @@ module.exports = {
         let fused_target = allhexes_fuse.search(target);
         if (fused_target.length > 0) {
           let found = fused_target[0].item;
+          let facilities = await database.find({hex: found}).toArray();
 
+          let buffer = await createHexImage(facilities, found);
+          let file = new AttachmentBuilder(buffer);
           let embeds = await getHexEmbed([[found]], facilities);
           if (embeds.length > 0) {
               embeds[0].setDescription("If a town is undisplayed, then there are no registered facilities in that town\nUse /lookup for specific facility information\nFacility format: Nickname - Main production - Contact - ID")
-              await interaction.followUp({content: "", embeds: embeds});
+              await interaction.followUp({content: "", embeds: embeds, files: [file]});
           } else {
             await interaction.followUp(found + " has no registered facilities!");
           }

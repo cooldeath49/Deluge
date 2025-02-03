@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, Component, ActionRowBuilder, Events, TextInputBuilder, TextInputStyle, ModalBuilder } = require("discord.js");
-const {database, items_fuse, client, toEmbed} = require("../../storage.js");
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder, ActionRowBuilder, Events, TextInputBuilder, TextInputStyle, ModalBuilder } = require("discord.js");
+const {database, items_fuse, client, toEmbed, createHexImage} = require("../../storage.js");
 const data = new SlashCommandBuilder()
     .setName("restock")
     .setDescription("Conveniently restock import or export items in a facility")
@@ -55,7 +55,6 @@ module.exports = {
                     return;
                 }
             } 
-            console.log("Down here");
             
             
             let fuse_item = items_fuse.search(item);
@@ -65,6 +64,9 @@ module.exports = {
                 let export_slice = fac.exports.find((slice) => slice.arr.find((inner) => inner.name == fuse_item[0].item)); //search exports
                 let slice;
                 if (import_slice || export_slice) {
+                    let buffer = await createHexImage([fac], fac.hex);
+                    let file = new AttachmentBuilder(buffer);
+
                     if (import_slice && export_slice) {
                         let import_button = new ButtonBuilder()
                         .setLabel("Imports")
@@ -79,7 +81,11 @@ module.exports = {
                         let footer = new EmbedBuilder()
                         .setTitle(name + " is both an Import and Export item: which category are you editing?");
     
-                        let response = await interaction.editReply({components: [new ActionRowBuilder().addComponents(import_button, export_button)], embeds: toEmbed(fac).concat([footer])})
+                        let response = await interaction.editReply({
+                            components: [new ActionRowBuilder().addComponents(import_button, export_button)], 
+                            embeds: toEmbed(fac).concat([footer]),
+                            files: [file]
+                        })
                     
                         await response.awaitMessageComponent({
                             filter: i => i.user.id === interaction.user.id,
@@ -118,9 +124,9 @@ module.exports = {
                     .setStyle(ButtonStyle.Danger);
                     let response;
                     if (interaction.replied || interaction.deferred) {
-                        response = await interaction.editReply({components: [new ActionRowBuilder().addComponents(yes, no)], embeds: toEmbed(fac).concat([embed])});
+                        response = await interaction.editReply({components: [new ActionRowBuilder().addComponents(yes, no)], embeds: toEmbed(fac).concat([embed]), files: [file]});
                     } else {
-                        response = await interaction.update({components: [new ActionRowBuilder().addComponents(yes, no)], embeds: toEmbed(fac).concat([embed])});
+                        response = await interaction.update({components: [new ActionRowBuilder().addComponents(yes, no)], embeds: toEmbed(fac).concat([embed]), files: [file]});
                     
                     }
 

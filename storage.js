@@ -73,11 +73,9 @@ async function makeImage(arr, hex) {
   let sharp_hex = sharp(hexPath);
   let comp_arr = [];
   
-
   for (let obj in arr) {
     let marker = sharp(path.resolve('marker1.png'));
     let pos = toPixelDistance(arr[obj].pos);
-    console.log(pos);
     let digit = sharp({ //instantiate sharp digit
       text: {
         text: arr[obj].id.toString(),
@@ -105,9 +103,11 @@ async function makeImage(arr, hex) {
     )
   }
   
+
   return sharp_hex.composite(comp_arr).toBuffer();
 }
 // returns filename to image
+
 async function createHexImage(facs, hex) {
   return await makeImage(facs.map((fac) => {return {
     pos: gridToCoordinates(fac.letter, fac.number),
